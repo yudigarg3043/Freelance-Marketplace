@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const auth = require('./routes/auth');
+const jobs = require('./routes/jobs');
 require('dotenv').config();
 
 const app = express();
@@ -12,7 +14,8 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.log(err));
 
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', auth);
+app.use('/api/jobs', jobs);
 
 const PORT = process.env.Port || 5000;
 
