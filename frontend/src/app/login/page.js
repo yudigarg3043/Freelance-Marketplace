@@ -34,7 +34,7 @@ export default function Login() {
       const data = await response.json();
       localStorage.setItem('token', data.token);
       alert('Login successful!');
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err.message);
     } finally {

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const auth = require('./routes/auth');
 const jobs = require('./routes/jobs');
+const dashboard = require('./routes/dashboard');
 require('dotenv').config();
 
 const app = express();
@@ -16,6 +17,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/api/auth', auth);
 app.use('/api/jobs', jobs);
+app.use('/api/dashboard', dashboard);
 
 const PORT = process.env.Port || 5000;
 
