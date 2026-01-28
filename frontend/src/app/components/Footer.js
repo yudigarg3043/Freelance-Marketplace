@@ -12,7 +12,7 @@ export default function Footer() {
           {/* Company Info */}
           <div>
             <h3 className="text-blue-600 text-lg font-bold mb-4">
-              Freelance Pro
+              FreelanceHub
             </h3>
             <p className="text-slate-500 text-sm leading-6">
               Connect with talented freelancers or find your next project. Your success is our mission.
@@ -28,7 +28,7 @@ export default function Footer() {
               <li>
                 <Link href="/dashboard/client">
                   <span className="text-slate-500 text-sm hover:text-blue-600 transition-colors cursor-pointer">
-                    Client Dashboard
+                    Dashboard
                   </span>
                 </Link>
               </li>
@@ -58,7 +58,7 @@ export default function Footer() {
               <li>
                 <Link href="/dashboard/freelancer">
                   <span className="text-slate-500 text-sm hover:text-blue-600 transition-colors cursor-pointer">
-                    Freelancer Dashboard
+                    Dashboard
                   </span>
                 </Link>
               </li>
@@ -113,7 +113,7 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-gray-200 pt-8 text-center">
           <p className="text-slate-500 text-sm m-0">
-            &copy; {currentYear} Freelance Pro. All rights reserved. | Privacy Policy | Terms of Service
+            &copy; {currentYear} FreelanceHub. All rights reserved. | Privacy Policy | Terms of Service
           </p>
         </div>
       </div>

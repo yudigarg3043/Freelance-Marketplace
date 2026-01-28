@@ -2,6 +2,8 @@
 
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ActivityItem from '../components/ActivityItem';
+import StatCardDash from '../components/StatCardDash';
 
 export default function Dashboard() {
   return (
@@ -57,10 +59,10 @@ export default function Dashboard() {
             marginBottom: '3rem',
           }}
         >
-          <StatCard title="Total Projects" value="12" />
-          <StatCard title="Active Tasks" value="24" />
-          <StatCard title="Team Members" value="8" />
-          <StatCard title="Completion Rate" value="85%" />
+          <StatCardDash title="Total Projects" value="12" />
+          <StatCardDash title="Active Tasks" value="24" />
+          <StatCardDash title="Team Members" value="8" />
+          <StatCardDash title="Completion Rate" value="85%" />
         </section>
 
         {/* Recent Activity Section */}
@@ -99,103 +101,6 @@ export default function Dashboard() {
       </main>
 
       <Footer />
-    </div>
-  );
-}
-
-function StatCard({ title, value }) {
-  return (
-    <div
-      style={{
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E5E7EB',
-        borderRadius: '0.5rem',
-        padding: '1.5rem',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#2563EB';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.1)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = '#E5E7EB';
-        e.currentTarget.style.boxShadow = 'none';
-      }}
-    >
-      <p
-        style={{
-          color: '#64748B',
-          fontSize: '0.875rem',
-          margin: '0 0 0.5rem 0',
-        }}
-      >
-        {title}
-      </p>
-      <p
-        style={{
-          color: '#0F172A',
-          fontSize: '2rem',
-          fontWeight: 'bold',
-          margin: 0,
-        }}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ActivityItem({ title, description, timestamp, isLast = false }) {
-  return (
-    <div
-      style={{
-        padding: '1.5rem',
-        borderBottom: isLast ? 'none' : '1px solid #E5E7EB',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        transition: 'background-color 0.3s ease',
-        cursor: 'pointer',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = '#F8FAFC';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'transparent';
-      }}
-    >
-      <div>
-        <p
-          style={{
-            color: '#0F172A',
-            fontSize: '1rem',
-            fontWeight: '600',
-            margin: '0 0 0.25rem 0',
-          }}
-        >
-          {title}
-        </p>
-        <p
-          style={{
-            color: '#64748B',
-            fontSize: '0.875rem',
-            margin: 0,
-          }}
-        >
-          {description}
-        </p>
-      </div>
-      <span
-        style={{
-          color: '#64748B',
-          fontSize: '0.875rem',
-          whiteSpace: 'nowrap',
-          marginLeft: '1rem',
-        }}
-      >
-        {timestamp}
-      </span>
     </div>
   );
 }

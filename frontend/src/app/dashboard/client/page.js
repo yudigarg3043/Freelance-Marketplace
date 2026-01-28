@@ -2,6 +2,9 @@
 
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import StatCard from '../../components/StatCard';
+import ProjectCard from '../../components/ProjectCard';
+import FreelancerCard from '../../components/FreelancerCard';
 
 export default function ClientDashboard() {
   return (
@@ -97,113 +100,6 @@ export default function ClientDashboard() {
       </main>
 
       <Footer />
-    </div>
-  );
-}
-
-function StatCard({ title, value, subtitle }) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-600 hover:shadow-lg transition-all cursor-pointer">
-      <p className="text-slate-500 text-sm mb-2 m-0">
-        {title}
-      </p>
-      <p className="text-slate-900 text-3xl font-bold mb-2 m-0">
-        {value}
-      </p>
-      <p className="text-slate-500 text-sm m-0">
-        {subtitle}
-      </p>
-    </div>
-  );
-}
-
-function ProjectCard({ title, freelancer, status, progress, dueDate }) {
-  const statusColors = {
-    'In Progress': 'bg-blue-600',
-    'Review': 'bg-amber-500',
-    'Completed': 'bg-green-600'
-  };
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all cursor-pointer">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 mb-1 m-0">
-            {title}
-          </h3>
-          <p className="text-slate-500 text-sm m-0">
-            with {freelancer}
-          </p>
-        </div>
-        <span className={`${statusColors[status]} text-white px-3 py-1 rounded text-xs font-bold`}>
-          {status}
-        </span>
-      </div>
-
-      <div className="mb-4">
-        <div className="flex justify-between mb-2">
-          <span className="text-slate-500 text-sm">
-            Progress
-          </span>
-          <span className="text-slate-900 text-sm font-bold">
-            {progress}
-          </span>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
-          <div
-            className="h-full bg-blue-600 transition-all"
-            style={{ width: progress }}
-          />
-        </div>
-      </div>
-
-      <p className="text-slate-500 text-sm m-0">
-        Due: {dueDate}
-      </p>
-    </div>
-  );
-}
-
-function FreelancerCard({ name, title, rating, reviews, hourlyRate, skills }) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-600 hover:shadow-lg transition-all cursor-pointer">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold text-slate-900 mb-1 m-0">
-          {name}
-        </h3>
-        <p className="text-slate-500 text-sm m-0">
-          {title}
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-amber-500 text-sm font-bold">
-          ★ {rating}
-        </span>
-        <span className="text-slate-500 text-sm">
-          ({reviews} reviews)
-        </span>
-      </div>
-
-      <div className="mb-4">
-        <p className="text-slate-900 text-base font-bold m-0 mb-2">
-          {hourlyRate}
-        </p>
-        <div className="flex gap-2 flex-wrap">
-          {skills.map((skill, idx) => (
-            <span
-              key={idx}
-              className="bg-blue-50 text-slate-900 px-3 py-1 rounded text-xs font-bold"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors text-sm font-bold">
-        View Profile
-      </button>
     </div>
   );
 }

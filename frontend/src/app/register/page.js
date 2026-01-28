@@ -138,7 +138,7 @@ export default function Register() {
         </div>
 
         <div className='mb-5 flex justify-center text-gray-900'>
-          <Link href="/login">Back to Login</Link>
+          <Link href="/login">Login</Link>
         </div>
 
         {error && (

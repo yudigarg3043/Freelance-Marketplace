@@ -6,9 +6,9 @@ export default function Navbar() {
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
-        <Link href="/">
+        <Link href="/dashboard">
           <h1 className="text-2xl font-bold text-blue-600 cursor-pointer">
-            Freelance Pro
+            Freelance Hub
           </h1>
         </Link>
 
@@ -16,14 +16,14 @@ export default function Navbar() {
           <li>
             <Link href="/dashboard/client">
               <span className="text-slate-900 text-sm hover:text-blue-600 transition-colors cursor-pointer">
-                For Clients
+                Clients
               </span>
             </Link>
           </li>
           <li>
             <Link href="/dashboard/freelancer">
               <span className="text-slate-900 text-sm hover:text-blue-600 transition-colors cursor-pointer">
-                For Freelancers
+                Freelancers
               </span>
             </Link>
           </li>
@@ -35,9 +35,11 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors text-sm">
-              Sign In
-            </button>
+            <Link href="/register">
+              <button className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors text-sm">
+                Sign In
+              </button>
+            </Link>
           </li>
         </ul>
       </div>
