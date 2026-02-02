@@ -22,7 +22,7 @@ const Login = () => {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+        `http://localhost:4080/api/auth/login`,
         {
           method: "POST",
           headers: {

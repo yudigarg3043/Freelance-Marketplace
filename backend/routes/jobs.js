@@ -16,13 +16,13 @@ router.post('/', auth, async (req, res) => {
             description,
             budget,
             deadline,
-            client: req.user._id
-        });
+            client: req.user._id || req.user.id      
+          });
 
         await job.save();
         res.status(201).json(job);
     } catch (err) {
-        res.status(500).json({message: 'Server error'});
+        res.status(500).json({message: 'Server error', error: err.message});
     }
 });
 
