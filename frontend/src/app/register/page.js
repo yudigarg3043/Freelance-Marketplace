@@ -1,158 +1,200 @@
-'use client';
+"use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useState } from 'react';
-import Button from '../components/button';
-import styles from './register.module.css';
+import { useRouter } from "next/navigation";
+import Header from "../components/credentials/Header";
 
-export default function Register() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'freelancer',  // ✅ Matches your schema default
-    skills: []           // ✅ Matches your schema
-  });
+
+const Register = () => {
+  const router = useRouter();
+
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [selectedRole, setSelectedRole] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Handle role dropdown
-    if (name === 'role') {
-      setFormData({ ...formData, role: value });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
-    // ✅ EXACTLY matches your User schema fields
-    const userData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,  // Backend hashes it (bcrypt pre-save)
-      role: formData.role,          // 'freelancer' or 'client'
-      skills: formData.skills || [] // Empty array OK
-    };
+    if (!selectedRole) {
+      setError("Please select your account type");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:4080/api/auth/register', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify(userData)
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: fullName,
+            email,
+            password,
+            role: selectedRole,
+          }),
+        }
+      );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.msg || 'Registration failed');
+      if (!res.ok) {
+        setError(data.message || "Registration failed");
+        return;
       }
 
-      // Success ✅
-      localStorage.setItem('token', data.token);
-      alert(`Welcome ${formData.role === 'freelancer' ? 'Freelancer' : 'Client'}!`);
-      window.location.href = '/login';
+      localStorage.setItem("token", data.token);
+      router.push("/dashboard");
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.container}>
-      <form className={`${styles.form} max-w-sm mx-auto`} onSubmit={handleSubmit}>
-        <div className="mb-5">
-          <label htmlFor="name" className="block mb-2.5 text-sm font-medium text-gray-900">
-            Your name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2.5 shadow-sm placeholder:text-gray-500"
-            placeholder="John Doe"
-            required
-          />
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* LEFT SIDE */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-teal-500 via-teal-600 to-blue-600 items-center justify-center p-12">
+        <div className="text-center text-white space-y-6 max-w-lg">
+          <h2 className="text-4xl font-bold">Join FreelanceHub Today</h2>
+          <p className="text-white/80 text-lg">
+            Create your account and start connecting with opportunities
+          </p>
         </div>
-        
-        <div className="mb-5">
-          <label htmlFor="email" className="block mb-2.5 text-sm font-medium text-gray-900">
-            Your email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2.5 shadow-sm placeholder:text-gray-500"
-            placeholder="john@example.com"
-            required
-          />
-        </div>
-        
-        <div className="mb-5">
-          <label htmlFor="password" className="block mb-2.5 text-sm font-medium text-gray-900">
-            Your password (min 6 chars)
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2.5 shadow-sm placeholder:text-gray-500"
-            placeholder="••••••••"
-            minLength={6}
-            required
-          />
-        </div>
+      </div>
 
-        {/* ✅ Role dropdown - matches your schema enum */}
-        <div className="mb-5">
-          <label htmlFor="role" className="block mb-2.5 text-sm font-medium text-gray-900">
-            Register as
-          </label>
-          <select
-            id="role"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-3 py-2.5 shadow-sm"
-            required
-          >
-            <option value="freelancer">Freelancer</option>
-            <option value="client">Client</option>
-          </select>
-        </div>
-
-        <div className='mb-5 flex justify-center text-gray-900'>
-          <Link href="/login">Login</Link>
-        </div>
-
-        {error && (
-          <div className="mb-5 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-            {error}
+      {/* RIGHT SIDE */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md space-y-8">
+          <Header />
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-slate-900">
+              Create an account
+            </h1>
+            <p className="text-slate-500">
+              Get started with your free account today
+            </p>
           </div>
-        )}
 
-        <div className="text-center">
-          <Button variant="light" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Register'}
-          </Button>
+          {error && (
+            <p className="text-red-600 text-sm font-medium">{error}</p>
+          )}
+
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-slate-900">
+              I want to:
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("freelancer")}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  selectedRole === "freelancer"
+                    ? "border-teal-500 bg-teal-50"
+                    : "border-slate-200 hover:border-teal-300"
+                }`}
+              >
+                <p className="font-semibold text-slate-900">
+                  Work as Freelancer
+                </p>
+                <p className="text-xs text-slate-500">Find jobs & earn</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRole("client")}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  selectedRole === "client"
+                    ? "border-teal-500 bg-teal-50"
+                    : "border-slate-200 hover:border-teal-300"
+                }`}
+              >
+                <p className="font-semibold text-slate-900">
+                  Hire Freelancers
+                </p>
+                <p className="text-xs text-slate-500">Post jobs & hire</p>
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-900">
+                Full Name
+              </label>
+              <input
+                type="text"
+                className="w-full h-12 px-4 rounded-xl border border-slate-200"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900">
+                Email Address
+              </label>
+              <input
+                type="email"
+                className="w-full h-12 px-4 rounded-xl border border-slate-200"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-900">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                >
+                  👁
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold disabled:opacity-50"
+            >
+              {loading ? "Creating account..." : "Create Account"}
+            </button>
+          </form>
+
+          <p className="text-center text-slate-500">
+            Already have an account?{" "}
+            <Link href="/login" className="text-teal-600 hover:underline">
+              Sign in
+            </Link>
+          </p>
         </div>
-      </form>
+      </div>
     </div>
   );
-}
+};
+
+export default Register;
