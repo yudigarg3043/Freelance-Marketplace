@@ -134,7 +134,7 @@ const Register = () => {
               </label>
               <input
                 type="text"
-                className="w-full h-12 px-4 rounded-xl border border-slate-200"
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 text-slate-900"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
@@ -147,7 +147,7 @@ const Register = () => {
               </label>
               <input
                 type="email"
-                className="w-full h-12 px-4 rounded-xl border border-slate-200"
+                className="w-full h-12 px-4 rounded-xl border border-slate-200 text-slate-900"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -161,7 +161,7 @@ const Register = () => {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200"
+                  className="w-full h-12 px-4 pr-12 rounded-xl border border-slate-200 text-slate-900"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

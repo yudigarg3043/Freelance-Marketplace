@@ -1,12 +1,25 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
+
+  // Check for login status on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    router.push('/');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/50">
@@ -32,25 +45,50 @@ const Navbar = () => {
             <Link href="/freelancers" className="text-slate-500 hover:text-slate-900 transition-colors font-medium">
               Find Talent
             </Link>
+            <Link href="/post-job" className="text-slate-500 hover:text-teal-600 transition-colors font-medium">
+              Post a Job
+            </Link>
             <Link href="/how-it-works" className="text-slate-500 hover:text-slate-900 transition-colors font-medium">
               How It Works
             </Link>
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth Buttons / User Profile */}
           <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={() => router.push("/login")}
-              className="h-10 px-4 rounded-xl text-slate-900 font-medium hover:bg-slate-100 transition-colors"
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => router.push("/register")}
-              className="h-10 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium hover:opacity-90 transition-opacity"
-            >
-              Get Started
-            </button>
+            {isLoggedIn ? (
+              <div className="flex items-center gap-4">
+                {/* User Icon Link */}
+                <Link href="/profile" className="flex items-center gap-2 group">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 group-hover:bg-slate-200 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </Link>
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-slate-500 hover:text-red-500 transition-colors"
+                >
+                  Log Out
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="h-10 px-4 rounded-xl text-slate-900 font-medium hover:bg-slate-100 transition-colors"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="h-10 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium hover:opacity-90 transition-opacity"
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -89,25 +127,58 @@ const Navbar = () => {
                 Find Talent
               </Link>
               <Link
+                href="/post-job"
+                className="text-slate-500 hover:text-teal-600 transition-colors font-medium py-2"
+                onClick={() => setIsOpen(false)}
+              >
+                Post a Job
+              </Link>
+              <Link
                 href="/how-it-works"
                 className="text-slate-500 hover:text-slate-900 transition-colors font-medium py-2"
                 onClick={() => setIsOpen(false)}
               >
                 How It Works
               </Link>
+              
               <div className="flex flex-col gap-2 pt-4 border-t border-slate-200/50">
-                <button
-                  onClick={() => { router.push("/login"); setIsOpen(false); }}
-                  className="h-10 px-4 rounded-xl text-slate-900 font-medium hover:bg-slate-100 transition-colors"
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={() => { router.push("/register"); setIsOpen(false); }}
-                  className="h-10 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium hover:opacity-90 transition-opacity"
-                >
-                  Get Started
-                </button>
+                {isLoggedIn ? (
+                  <>
+                     <Link
+                      href="/profile"
+                      className="flex items-center gap-3 py-2 text-slate-700 font-medium hover:bg-slate-50 rounded-lg"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      My Profile
+                    </Link>
+                    <button
+                      onClick={() => { handleLogout(); setIsOpen(false); }}
+                      className="h-10 px-4 rounded-xl border border-red-200 text-red-600 font-medium hover:bg-red-50 transition-colors text-left"
+                    >
+                      Log Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => { router.push("/login"); setIsOpen(false); }}
+                      className="h-10 px-4 rounded-xl text-slate-900 font-medium hover:bg-slate-100 transition-colors"
+                    >
+                      Log In
+                    </button>
+                    <button
+                      onClick={() => { router.push("/register"); setIsOpen(false); }}
+                      className="h-10 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-medium hover:opacity-90 transition-opacity"
+                    >
+                      Get Started
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
