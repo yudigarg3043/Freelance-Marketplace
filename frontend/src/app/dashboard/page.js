@@ -13,7 +13,7 @@ export default function Dashboard() {
         flexDirection: 'column',
         minHeight: '100vh',
         backgroundColor: '#FFFFFF',
-      }}
+      }} className='pt-16'
     >
       <Navbar />
 
