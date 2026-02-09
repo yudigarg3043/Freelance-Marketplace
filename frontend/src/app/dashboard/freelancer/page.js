@@ -1,7 +1,7 @@
 'use client';
 
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '../../components/Layout/Navbar';
+import Footer from '../../components/Layout/Footer';
 import StatCard from '../../components/StatCard';
 import ServiceCard from '../../components/ServiceCard';
 import ReviewCard from '../../components/ReviewCard';
