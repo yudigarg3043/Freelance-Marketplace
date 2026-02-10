@@ -52,7 +52,7 @@ const Register = () => {
       }
 
       localStorage.setItem("token", data.token);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");

@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/', auth, async (req, res) => {
     try {
-        const {title, description, budget, deadline} = req.body;
+        const {title, description, budget, deadline, category} = req.body;
 
         if (req.user.role !== 'client') {
             return res.status(403).json({ message: 'Only clients can post jobs.' });
@@ -16,7 +16,8 @@ router.post('/', auth, async (req, res) => {
             description,
             budget,
             deadline,
-            client: req.user._id || req.user.id      
+            category,
+            client: req.user._id     
           });
 
         await job.save();

@@ -2,6 +2,7 @@ import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import HeroSection from "./components/dashboard/HeroSection";
 import HowItWorks from "./components/dashboard/HowItWorks";
+import Categories from "./components/dashboard/Categories";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <HowItWorks />
+      <Categories />
       <Footer />
     </div>
   );

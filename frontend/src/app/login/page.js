@@ -44,7 +44,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
 
       // Redirect after successful login
-      router.push("/dashboard");
+      router.push("/");
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");
