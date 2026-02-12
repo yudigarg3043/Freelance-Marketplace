@@ -1,25 +1,25 @@
-const express = require('express');
-const auth = require('../middleware/auth');
-const Job = require('../models/Job');
+const express = require("express");
+const auth = require("../middleware/auth");
+const Job = require("../models/Job");
+const Bid = require("../models/Bid");
 const router = express.Router();
 
-// GET /api/dashboard/stats - Dashboard data
-router.get('/stats', auth, async (req, res) => {
+router.get("/stats", auth, async (req, res) => {
   try {
     const stats = {
       totalJobs: await Job.countDocuments(),
-      openJobs: await Job.countDocuments({ status: 'open' }),
-      earnings: 45000, // Mock for now
-      proposalsSent: 15 // Mock for now
+      earnings: 45000,
+      proposalsSent: 15
     };
-    
-    const jobs = await Job.find({ status: 'open' })
-      .populate('client', 'name')
+
+    const jobs = await Job.find()
+      .populate("client", "name")
       .limit(5);
-      
+
     res.json({ stats, jobs });
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    console.error("Stats Error:", err);
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -43,7 +43,8 @@ router.get("/categories", async (req, res) => {
 
     res.json(categories);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Categories Error:", err);
+    res.status(500).json({ message: err.message });
   }
 });
 

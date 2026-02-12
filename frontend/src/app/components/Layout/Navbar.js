@@ -49,13 +49,27 @@ const Navbar = () => {
     router.push('/login');
   };
 
+  const handleProfileClick = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    if (user.role === "freelancer") {
+      router.push("/dashboard/freelancer");
+    } else {
+      router.push("/dashboard/client");
+    }
+  };
+
+
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow-md">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -67,7 +81,6 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
             <Link href="/jobs" className="text-slate-500 hover:text-slate-900 font-medium">
               Browse Jobs
@@ -104,16 +117,21 @@ const Navbar = () => {
 
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50">
-                      <Link
-                        href="/profile"
-                        className="block px-4 py-2 text-slate-700 hover:bg-teal-50"
-                        onClick={() => setIsProfileOpen(false)}
+                      <button
+                        onClick={() => {
+                          handleProfileClick();
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-slate-700 hover:bg-slate-100 transition-colors"
                       >
                         Profile Settings
-                      </Link>
+                      </button>
                       <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                        onClick={() => {
+                          handleLogout();
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
                       >
                         Logout
                       </button>
