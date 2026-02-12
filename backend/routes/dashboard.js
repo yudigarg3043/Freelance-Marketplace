@@ -48,5 +48,115 @@ router.get("/categories", async (req, res) => {
   }
 });
 
+router.get("/freelancer", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "freelancer") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const freelancerId = req.user._id;
+
+    const totalBids = await Bid.countDocuments({
+      freelancer: freelancerId,
+    });
+
+    const activeProjects = await Job.find({
+      assignedFreelancer: freelancerId,
+      status: "in-progress",
+    })
+      .populate("client", "name")
+      .limit(5);
+
+    const earningsAgg = await Job.aggregate([
+      {
+        $match: {
+          assignedFreelancer: freelancerId,
+          status: "completed",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$budget" },
+        },
+      },
+    ]);
+
+    const totalEarnings = earningsAgg.length > 0 ? earningsAgg[0].total : 0;
+
+    res.json({
+      stats: {
+        totalEarnings,
+        activeProjects: activeProjects.length,
+        profileViews: 542,
+        totalBids,
+      },
+      activeProjects,
+      recentActivity: [],
+    });
+  } catch (err) {
+    console.error("Freelancer Dashboard Error:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/client", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "client") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const clientId = req.user._id;
+
+    const totalJobs = await Job.countDocuments({
+      client: clientId,
+    });
+
+    const activeProjects = await Job.find({
+      client: clientId,
+      status: { $in: ["open", "in-progress"] },
+    })
+      .populate("assignedFreelancer", "name")
+      .limit(5);
+
+    const completedJobs = await Job.countDocuments({
+      client: clientId,
+      status: "completed",
+    });
+
+    const totalSpentAgg = await Job.aggregate([
+      {
+        $match: {
+          client: clientId,
+          status: "completed",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$budget" },
+        },
+      },
+    ]);
+
+    const totalSpent =
+      totalSpentAgg.length > 0 ? totalSpentAgg[0].total : 0;
+
+    res.json({
+      stats: {
+        totalSpent,
+        activeProjects: activeProjects.length,
+        totalJobs,
+        completedJobs,
+      },
+      activeProjects,
+      recentActivity: [],
+    });
+  } catch (err) {
+    console.error("Client Dashboard Error:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 module.exports = router;
