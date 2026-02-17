@@ -7,7 +7,6 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center pt-16 overflow-hidden bg-slate-50">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-blue-500/5 to-slate-50" />
       <div className="absolute top-20 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-20 left-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl" />
@@ -15,7 +14,6 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          {/* LEFT CONTENT */}
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-50 text-teal-700 text-sm font-medium">
               <span>Trusted by 10,000+ professionals</span>
@@ -49,7 +47,6 @@ export default function HeroSection() {
               </button>
             </div>
 
-            {/* Stats */}
             <div className="flex flex-wrap gap-8 pt-4">
               <div>
                 <p className="text-3xl font-bold text-slate-900">50K+</p>
@@ -66,7 +63,6 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* RIGHT CONTENT */}
           <div className="hidden lg:flex flex-1 bg-gradient-to-br from-teal-500 via-teal-600 to-blue-600 items-center justify-center rounded-3xl p-12">
             <div className="text-center text-white space-y-6 max-w-lg">
               <h2 className="text-3xl font-bold">Start Your Journey</h2>
