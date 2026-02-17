@@ -73,7 +73,7 @@ const PostJob = () => {
         throw new Error(data.message || "Something went wrong");
       }
 
-      router.push("/jobs");
+      router.push(`/jobs/${data._id}`); 
     } catch (err) {
       setError(err.message);
     } finally {

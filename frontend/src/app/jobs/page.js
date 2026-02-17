@@ -159,7 +159,7 @@ const Jobs = () => {
               <div
                 key={job._id}
                 className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                onClick={() => router.push(`/jobs/${job._id}`)}
+                // onClick={() => router.push(`/jobs/${job._id}`)}
               >
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                   <div className="flex-1">

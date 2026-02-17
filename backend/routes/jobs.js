@@ -38,4 +38,47 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:id', async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id)
+        .populate('client', 'name email')
+        .populate('bids');
+        
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+        
+        res.json(job);
+    } catch(err) {
+        res.status(500).json({message: 'Server error', error: err.message});
+    }
+});
+
+router.put('/:id', auth, async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id);
+        
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+        
+        if (job.client.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to update this job' });
+        }
+
+        const {title, description, budget, deadline, category} = req.body;
+        
+        if (title) job.title = title;
+        if (description) job.description = description;
+        if (budget) job.budget = budget;
+        if (deadline) job.deadline = deadline;
+        if (category) job.category = category;
+
+        await job.save();
+        res.json(job);
+    } catch (err) {
+        res.status(500).json({message: 'Server error', error: err.message});
+    }
+});
+
 module.exports = router;

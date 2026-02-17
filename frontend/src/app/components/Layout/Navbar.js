@@ -85,7 +85,7 @@ const Navbar = () => {
             <Link href="/jobs" className="text-slate-500 hover:text-slate-900 font-medium">
               Browse Jobs
             </Link>
-            <Link href="/freelancers" className="text-slate-500 hover:text-slate-900 font-medium">
+            <Link href="/post-job" className="text-slate-500 hover:text-slate-900 font-medium">
               Find Talent
             </Link>
           </div>
