@@ -8,7 +8,13 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://freelance-marketplace-frontend-omega.vercel.app', // Your production frontend
+    'http://localhost:3000' // For local development
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
