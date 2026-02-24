@@ -1,10 +1,10 @@
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
-import HeroSection from "./components/dashboard/HeroSection";
-import HowItWorks from "./components/dashboard/HowItWorks";
-import Categories from "./components/dashboard/Categories";
-import CTASection from "./components/dashboard/CTASection";
-import FeaturedJobs from "./components/dashboard/FeaturedJobs.jsx";
+import HeroSection from "./components/Home/HeroSection";
+import HowItWorks from "./components/Home/HowItWorks";
+import Categories from "./components/Home/Categories";
+import CTASection from "./components/Home/CTASection";
+import FeaturedJobs from "./components/Home/FeaturedJobs.jsx";
 
 export default function Home() {
   return (

@@ -10,8 +10,8 @@ const app = express();
 
 app.use(cors({
   origin: [
-    'https://freelance-marketplace-frontend-omega.vercel.app', // Your production frontend
-    'http://localhost:3000' // For local development
+    'https://freelance-marketplace-frontend-omega.vercel.app',
+    'http://localhost:3000'
   ],
   credentials: true
 }));

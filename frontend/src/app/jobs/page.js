@@ -201,7 +201,7 @@ const Jobs = () => {
                   </span>
                   <button 
                     className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white text-sm font-semibold hover:from-teal-600 hover:to-teal-700 transition-all duration-200 flex items-center gap-1.5"
-                    onClick={() => router.push(`/bid/${job._id}`)}
+                    onClick={() => router.push(`/jobs/${job._id}`)}
                   >
                     Apply Now
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

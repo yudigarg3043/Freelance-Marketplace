@@ -49,8 +49,8 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><Link href="/jobs" className="text-slate-400 hover:text-white transition-colors text-sm">Find Jobs</Link></li>
               <li><Link href="/register" className="text-slate-400 hover:text-white transition-colors text-sm">Create Profile</Link></li>
-              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors text-sm">How to Bid</Link></li>
-              <li><Link href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Success Stories</Link></li>
+              <li><Link href="/HowToBid" className="text-slate-400 hover:text-white transition-colors text-sm">How to Bid</Link></li>
+              <li><Link href="/SuccessStories" className="text-slate-400 hover:text-white transition-colors text-sm">Success Stories</Link></li>
             </ul>
           </div>
 

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isDashboardOpen, setisDashboardOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -49,7 +49,7 @@ const Navbar = () => {
     router.push('/login');
   };
 
-  const handleProfileClick = () => {
+  const handleDeshboardClick = () => {
     if (!user) {
       router.push("/login");
       return;
@@ -88,15 +88,17 @@ const Navbar = () => {
             <Link href="/post-job" className="text-slate-500 hover:text-slate-900 font-medium">
               Find Talent
             </Link>
+            <Link href="/HowItWorks" className="text-slate-500 hover:text-slate-900 font-medium">
+              How It Works
+            </Link>
           </div>
 
-          {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
             {!loading && (
               isLoggedIn ? (
                 <div className="relative">
                   <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    onClick={() => setisDashboardOpen(!isDashboardOpen)}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition"
                   >
                     <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">
@@ -106,7 +108,7 @@ const Navbar = () => {
                       {user.name}
                     </span>
                     <svg
-                      className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
+                      className={`w-4 h-4 transition-transform ${isDashboardOpen ? 'rotate-180' : ''}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -115,21 +117,24 @@ const Navbar = () => {
                     </svg>
                   </button>
 
-                  {isProfileOpen && (
+                  {isDashboardOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50">
                       <button
                         onClick={() => {
-                          handleProfileClick();
-                          setIsProfileOpen(false);
+                          handleDeshboardClick();
+                          setisDashboardOpen(false);
                         }}
                         className="w-full text-left px-4 py-2 text-slate-700 hover:bg-slate-100 transition-colors"
                       >
-                        Profile Settings
+                        Dashboard
+                      </button>
+                      <button className="w-full text-left px-4 py-2 text-slate-700 hover:bg-slate-100 transition-colors">
+                        Profile
                       </button>
                       <button
                         onClick={() => {
                           handleLogout();
-                          setIsProfileOpen(false);
+                          setisDashboardOpen(false);
                         }}
                         className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
                       >
@@ -157,7 +162,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Toggle */}
           <button
             className="md:hidden"
             onClick={() => setIsOpen(!isOpen)}
