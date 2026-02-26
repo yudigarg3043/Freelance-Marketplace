@@ -9,7 +9,7 @@ const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now - date) / 1000);
-  
+
   let interval = seconds / 31536000;
   if (interval > 1) return Math.floor(interval) + " years ago";
   interval = seconds / 2592000;
@@ -34,7 +34,7 @@ const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -73,9 +73,9 @@ const Jobs = () => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesCategory = !selectedCategory || job.category === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -199,9 +199,9 @@ const Jobs = () => {
                   <span className="text-sm font-medium text-slate-500">
                     {job.bids ? job.bids.length : 0} <span className="text-slate-400">proposal{job.bids?.length !== 1 ? 's' : ''}</span>
                   </span>
-                  <button 
+                  <button
                     className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white text-sm font-semibold hover:from-teal-600 hover:to-teal-700 transition-all duration-200 flex items-center gap-1.5"
-                    onClick={() => router.push(`/jobs/${job._id}`)}
+                    onClick={() => router.push(`/bid/${job._id}`)}
                   >
                     Apply Now
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

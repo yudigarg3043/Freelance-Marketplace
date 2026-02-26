@@ -116,11 +116,10 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setSelectedRole("freelancer")}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  selectedRole === "freelancer"
+                className={`p-4 rounded-xl border-2 transition-all ${selectedRole === "freelancer"
                     ? "border-teal-500 bg-teal-50"
                     : "border-slate-200 hover:border-teal-300"
-                }`}
+                  }`}
               >
                 <p className="font-semibold text-slate-900">
                   Work as Freelancer
@@ -131,11 +130,10 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setSelectedRole("client")}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  selectedRole === "client"
+                className={`p-4 rounded-xl border-2 transition-all ${selectedRole === "client"
                     ? "border-teal-500 bg-teal-50"
                     : "border-slate-200 hover:border-teal-300"
-                }`}
+                  }`}
               >
                 <p className="font-semibold text-slate-900">
                   Hire Freelancers
@@ -221,11 +219,13 @@ const Register = () => {
               Phone Number <span className="text-sm font-large text-red-400">*</span>
             </label>
             <input
+              type="tel"
               name="phone"
               placeholder="Phone"
               className="w-full h-12 px-4 rounded-xl border border-slate-200 text-slate-700"
               value={form.phone}
               onChange={handleChange}
+              required
             />
 
             {selectedRole === "freelancer" && (
