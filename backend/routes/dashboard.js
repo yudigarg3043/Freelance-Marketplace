@@ -60,29 +60,32 @@ router.get("/freelancer", auth, async (req, res) => {
       freelancer: freelancerId,
     });
 
-    const activeProjects = await Job.find({
-      assignedFreelancer: freelancerId,
-      status: "in-progress",
-    })
-      .populate("client", "name")
-      .limit(5);
+    // Find active projects via accepted bids
+    const acceptedBids = await Bid.find({
+      freelancer: freelancerId,
+      status: "accepted",
+    }).populate({
+      path: "job",
+      populate: { path: "client", select: "name" },
+    });
 
-    const earningsAgg = await Job.aggregate([
-      {
-        $match: {
-          assignedFreelancer: freelancerId,
-          status: "completed",
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$budget" },
-        },
-      },
-    ]);
+    const activeProjects = acceptedBids
+      .filter((b) => b.job && b.job.status === "in-progress")
+      .map((b) => ({
+        _id: b.job._id,
+        title: b.job.title,
+        budget: b.job.budget,
+        deadline: b.job.deadline,
+        status: b.job.status,
+        client: b.job.client,
+        bidAmount: b.amount,
+      }));
 
-    const totalEarnings = earningsAgg.length > 0 ? earningsAgg[0].total : 0;
+    // Calculate earnings from completed projects
+    const completedBids = acceptedBids.filter(
+      (b) => b.job && b.job.status === "completed"
+    );
+    const totalEarnings = completedBids.reduce((sum, b) => sum + b.amount, 0);
 
     res.json({
       stats: {
