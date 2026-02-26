@@ -27,7 +27,7 @@ export default function MyBids() {
         }
 
         const data = await res.json();
-        setBids(data.bids || []);
+        setBids(data);
       } catch (err) {
         setError("Could not load bids.");
       } finally {
@@ -77,8 +77,8 @@ export default function MyBids() {
               bids.map((bid) => (
                 <tr key={bid._id} className="border-t">
                   <td className="px-6 py-4">{bid.job?.title}</td>
-                  <td className="px-6 py-4">{bid.client?.name}</td>
-                  <td className="px-6 py-4">${bid.amount}</td>
+                  <td className="px-6 py-4">{bid.job?.client?.name || "N/A"}</td>
+                  <td className="px-6 py-4">₹{bid.amount?.toLocaleString()}</td>
                   <td className="px-6 py-4">
                     {new Date(bid.createdAt).toLocaleDateString()}
                   </td>

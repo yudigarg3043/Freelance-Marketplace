@@ -112,17 +112,37 @@ router.get("/client", auth, async (req, res) => {
       client: clientId,
     });
 
-    const activeProjects = await Job.find({
-      client: clientId,
-      status: { $in: ["open", "in-progress"] },
-    })
-      .populate("assignedFreelancer", "name")
-      .limit(5);
+    // All jobs by this client, with bids populated
+    const allJobs = await Job.find({ client: clientId })
+      .populate({
+        path: "bids",
+        populate: { path: "freelancer", select: "name skills" },
+        options: { sort: { createdAt: -1 } },
+      })
+      .sort({ createdAt: -1 });
+
+    const activeProjects = allJobs.filter(
+      (j) => j.status === "open" || j.status === "in-progress"
+    );
 
     const completedJobs = await Job.countDocuments({
       client: clientId,
       status: "completed",
     });
+
+    // Count total bids across all client jobs
+    const totalBids = allJobs.reduce(
+      (sum, job) => sum + (job.bids?.length || 0),
+      0
+    );
+
+    // Count pending bids (new proposals needing attention)
+    const pendingBids = allJobs.reduce(
+      (sum, job) =>
+        sum +
+        (job.bids?.filter((b) => b.status === "pending").length || 0),
+      0
+    );
 
     const totalSpentAgg = await Job.aggregate([
       {
@@ -148,7 +168,10 @@ router.get("/client", auth, async (req, res) => {
         activeProjects: activeProjects.length,
         totalJobs,
         completedJobs,
+        totalBids,
+        pendingBids,
       },
+      allJobs,
       activeProjects,
       recentActivity: [],
     });
@@ -157,6 +180,45 @@ router.get("/client", auth, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+// Freelancer's accepted projects
+router.get("/freelancer/projects", auth, async (req, res) => {
+  try {
+    if (req.user.role !== "freelancer") {
+      return res.status(403).json({ message: "Access denied" });
+    }
 
+    // Find all bids where this freelancer was accepted
+    const acceptedBids = await Bid.find({
+      freelancer: req.user._id,
+      status: "accepted",
+    })
+      .populate({
+        path: "job",
+        populate: { path: "client", select: "name email" },
+      })
+      .sort({ updatedAt: -1 });
+
+    // Transform into project objects
+    const projects = acceptedBids
+      .filter((b) => b.job) // filter out any null jobs
+      .map((bid) => ({
+        _id: bid.job._id,
+        title: bid.job.title,
+        description: bid.job.description,
+        budget: bid.job.budget,
+        deadline: bid.job.deadline,
+        category: bid.job.category,
+        status: bid.job.status,
+        client: bid.job.client,
+        bidAmount: bid.amount,
+        acceptedAt: bid.updatedAt,
+      }));
+
+    res.json(projects);
+  } catch (err) {
+    console.error("Freelancer Projects Error:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
 
 module.exports = router;

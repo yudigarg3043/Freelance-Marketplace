@@ -28,6 +28,7 @@ export default function BidPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [existingBid, setExistingBid] = useState(null);
 
   const [formData, setFormData] = useState({
     amount: "",
@@ -37,6 +38,7 @@ export default function BidPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
 
   // Platform fee calculation (e.g., 10%)
   const PLATFORM_FEE_PERCENT = 10;
@@ -59,29 +61,46 @@ export default function BidPage() {
         return;
       }
       setUserRole(decoded.role);
+      const currentUserId = decoded.id || decoded._id;
+
+      // 2. Fetch Job Details
+      const fetchJob = async () => {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${id}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch job");
+          }
+          const data = await response.json();
+          setJob(data);
+
+          // Check if user already has a bid on this job
+          if (data.bids && data.bids.length > 0) {
+            const myBid = data.bids.find(
+              (b) => b.freelancer?._id === currentUserId || b.freelancer === currentUserId
+            );
+            if (myBid) {
+              setExistingBid(myBid);
+              setIsUpdate(true);
+              setFormData({
+                amount: myBid.amount?.toString() || "",
+                deliveryTime: myBid.deliveryTime?.toString() || "",
+                message: myBid.message || "",
+              });
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          setError("Could not load job details.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchJob();
     } catch (err) {
       router.push("/login");
       return;
     }
-
-    // 2. Fetch Job Details
-    const fetchJob = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch job");
-        }
-        const data = await response.json();
-        setJob(data);
-      } catch (err) {
-        console.error(err);
-        setError("Could not load job details.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchJob();
   }, [id, router]);
 
   const handleChange = (e) => {
@@ -119,6 +138,7 @@ export default function BidPage() {
       }
 
       setSubmitted(true);
+      setIsUpdate(data.updated || false);
       setTimeout(() => {
         router.push("/dashboard/myBids");
       }, 2000);
@@ -157,7 +177,7 @@ export default function BidPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <div className="bg-white p-10 rounded-3xl shadow-lg border border-slate-100 text-center max-w-md w-full mx-4 transform transition-all scale-100">
@@ -166,8 +186,8 @@ export default function BidPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Bid Submitted!</h2>
-            <p className="text-slate-500 mb-6">Your proposal has been successfully sent to the client.</p>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">{isUpdate ? "Bid Updated!" : "Bid Submitted!"}</h2>
+            <p className="text-slate-500 mb-6">{isUpdate ? "Your proposal has been updated successfully." : "Your proposal has been successfully sent to the client."}</p>
             <div className="animate-pulse flex items-center justify-center gap-2 text-sm text-teal-600 font-medium">
               <div className="w-4 h-4 rounded-full border-2 border-teal-600 border-t-transparent animate-spin"></div>
               Redirecting to dashboard...
@@ -197,12 +217,20 @@ export default function BidPage() {
             Back
           </button>
 
-          {/* Top Banner */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-slate-900">{job.title}</h1>
-            <div className="flex gap-4 text-slate-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          {/* Job Details Banner */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
+            <h1 className="text-2xl font-bold text-slate-900 mb-3">{job.title}</h1>
+            <p className="text-slate-600 text-sm leading-relaxed mb-4 whitespace-pre-wrap">{job.description}</p>
+            <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Budget: <span className="font-semibold text-teal-600">₹{job.budget?.toLocaleString()}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Deadline: {new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-xs text-slate-600">{job.category}</span>
             </div>
           </div>
 
@@ -254,8 +282,8 @@ export default function BidPage() {
             <div className="w-full lg:w-2/3">
               <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">Place Your Bid</h2>
-                  <p className="text-slate-500">Submit your proposal and bid amount for this job.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">{isUpdate ? "Update Your Bid" : "Place Your Bid"}</h2>
+                  <p className="text-slate-500">{isUpdate ? "Modify your existing proposal for this job." : "Submit your proposal and bid amount for this job."}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -274,7 +302,7 @@ export default function BidPage() {
                         onChange={handleChange}
                         required
                         min="1"
-                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
                         placeholder="Enter your bid amount"
                       />
                     </div>
@@ -292,7 +320,7 @@ export default function BidPage() {
                       onChange={handleChange}
                       required
                       min="1"
-                      className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                      className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
                       placeholder="How many days to complete?"
                     />
                   </div>
@@ -308,7 +336,7 @@ export default function BidPage() {
                       onChange={handleChange}
                       required
                       rows={6}
-                      className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all resize-y placeholder-slate-400"
+                      className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all resize-y placeholder-slate-400"
                       placeholder="Describe why you're the best fit for this job, your approach, and relevant experience..."
                     />
                   </div>
@@ -330,7 +358,7 @@ export default function BidPage() {
                       {submitting ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        "Submit Bid"
+                        isUpdate ? "Update Bid" : "Submit Bid"
                       )}
                     </button>
                   </div>

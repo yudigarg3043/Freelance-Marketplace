@@ -34,6 +34,18 @@ const jobSchema = new mongoose.Schema(
         ref: "Bid",
       },
     ],
+
+    status: {
+      type: String,
+      enum: ["open", "in-progress", "completed"],
+      default: "open",
+    },
+
+    acceptedBid: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Bid",
+      default: null,
+    },
   },
   { timestamps: true }
 );

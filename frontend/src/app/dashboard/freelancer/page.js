@@ -98,13 +98,12 @@ const FreelancerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      
+
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform ${
-          sidebarOpen
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform ${sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full lg:translate-x-0"
-        }`}
+          }`}
       >
         <div className="p-6 border-b border-slate-200">
           <Header />
@@ -114,11 +113,10 @@ const FreelancerDashboard = () => {
 
           <Link
             href="/dashboard/freelancer"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition ${
-              pathname === "/dashboard/freelancer"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition ${pathname === "/dashboard/freelancer"
                 ? "bg-teal-50 text-teal-600"
                 : "text-slate-600 hover:bg-slate-100"
-            }`}
+              }`}
           >
             Dashboard
           </Link>
@@ -137,8 +135,8 @@ const FreelancerDashboard = () => {
             My Bids
           </Link>
 
-          {/* <Link
-            href="/MyDashboard/MyMessages"
+          <Link
+            href="/dashboard/myMessages"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Messages
@@ -147,7 +145,7 @@ const FreelancerDashboard = () => {
                 {unreadCount}
               </span>
             )}
-          </Link> */}
+          </Link>
 
           <Link
             href="/dashboard/myProfile"
