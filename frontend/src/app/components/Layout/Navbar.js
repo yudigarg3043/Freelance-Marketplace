@@ -176,7 +176,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-slate-200/50 flex flex-col gap-4">
+          <div className="md:hidden py-4 border-t border-slate-200/50 flex flex-col gap-4 text-slate-800">
             <Link href="/jobs" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
             <Link href="/freelancers" onClick={() => setIsOpen(false)}>Find Talent</Link>
 

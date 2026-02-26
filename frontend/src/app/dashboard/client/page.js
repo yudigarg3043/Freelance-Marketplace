@@ -112,26 +112,26 @@ const ClientDashboard = () => {
             Hired Freelancers
           </Link>
 
-          <Link
+          {/* <Link
             href="/dashboard/messages"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Messages
-          </Link>
+          </Link> */}
 
           <Link
-            href="/dashboard/profile"
+            href="/dashboard/myProfile"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Profile
           </Link>
 
-          <Link
+          {/* <Link
             href="/dashboard/settings"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Settings
-          </Link>
+          </Link> */}
         </nav>
       </aside>
 

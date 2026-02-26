@@ -5,135 +5,111 @@ import { useRouter, useParams } from "next/navigation";
 import Navbar from "../../components/Layout/Navbar";
 import Footer from "../../components/Layout/Footer";
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-const BidPage = () => {
+export default function BidPage() {
   const router = useRouter();
-  const params = useParams();
-  const jobId = params.id;
+  const { id } = useParams();
 
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   const [formData, setFormData] = useState({
     amount: "",
+    deliveryTime: "",
     message: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Platform fee calculation (e.g., 10%)
+  const PLATFORM_FEE_PERCENT = 10;
+  const platformFee = formData.amount ? (Number(formData.amount) * (PLATFORM_FEE_PERCENT / 100)).toFixed(2) : "0.00";
+  const takeHome = formData.amount ? (Number(formData.amount) - Number(platformFee)).toFixed(2) : "0.00";
+
   useEffect(() => {
+    // 1. Check Auth and Role
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+      if (decoded.role !== "freelancer") {
+        setError("Only freelancers can place bids.");
+        setLoading(false);
+        return;
+      }
+      setUserRole(decoded.role);
+    } catch (err) {
+      router.push("/login");
+      return;
+    }
+
+    // 2. Fetch Job Details
     const fetchJob = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${jobId}`
-        );
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch job");
         }
         const data = await response.json();
         setJob(data);
-        setFormData((prev) => ({
-          ...prev,
-          amount: data.budget,
-        }));
-        setLoading(false);
       } catch (err) {
         console.error(err);
-        setError("Could not load job details. Please try again later.");
+        setError("Could not load job details.");
+      } finally {
         setLoading(false);
       }
     };
 
-    if (jobId) {
-      fetchJob();
-    }
-  }, [jobId]);
+    fetchJob();
+  }, [id, router]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmitBid = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccessMessage(null);
-
-    // Validation
-    if (!formData.amount || Number(formData.amount) <= 0) {
-      setError("Bid amount must be greater than 0.");
-      return;
-    }
-
-    if (Number(formData.amount) > job.budget) {
-      setError(`Bid amount cannot exceed the job budget of ₹${job.budget.toLocaleString()}.`);
-      return;
-    }
-
-    if (!formData.message || formData.message.trim() === "") {
-      setError("Please provide a message with your bid.");
-      return;
-    }
-
-    if (formData.message.trim().length < 10) {
-      setError("Message must be at least 10 characters long.");
-      return;
-    }
+    if (!formData.amount || !formData.message) return;
 
     setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("You need to be logged in to place a bid.");
-        setSubmitting(false);
-        return;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/bids`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            jobId: jobId,
-            amount: Number(formData.amount),
-            message: formData.message,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit bid");
-      }
-
-      const bidData = await response.json();
-      setSuccessMessage("Your bid has been submitted successfully!");
-      setFormData({
-        amount: "",
-        message: "",
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bids`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          jobId: id,
+          amount: Number(formData.amount),
+          deliveryTime: Number(formData.deliveryTime),
+          message: formData.message
+        })
       });
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit bid");
+      }
+
+      setSubmitted(true);
       setTimeout(() => {
-        router.push("/dashboard/freelancer");
+        router.push("/dashboard/myBids");
       }, 2000);
+
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to submit bid. Please try again.");
+      alert(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -147,25 +123,40 @@ const BidPage = () => {
     );
   }
 
-  if (!job) {
+  if (error || !job) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50 flex flex-col">
         <Navbar />
-        <main className="pt-24 pb-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center py-16">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                Job not found
-              </h3>
-              <p className="text-slate-500 mb-6">
-                The job you're looking for doesn't exist.
-              </p>
-              <button
-                onClick={() => router.push("/jobs")}
-                className="px-6 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold hover:opacity-90 transition-opacity"
-              >
-                Back to Jobs
-              </button>
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <h3 className="text-xl font-bold text-red-600 mb-2">Access Denied</h3>
+            <p className="text-slate-600 mb-6">{error || "Job not found"}</p>
+            <button onClick={() => router.push("/jobs")} className="px-6 py-2 bg-slate-900 text-white rounded-xl">
+              Back to Jobs
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="bg-white p-10 rounded-3xl shadow-lg border border-slate-100 text-center max-w-md w-full mx-4 transform transition-all scale-100">
+            <div className="w-20 h-20 rounded-full bg-emerald-100 mx-auto mb-6 flex items-center justify-center">
+              <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Proposal Submitted!</h2>
+            <p className="text-slate-500 mb-6">Your bid has been successfully sent to the client.</p>
+            <div className="animate-pulse flex items-center justify-center gap-2 text-sm text-teal-600 font-medium">
+              <div className="w-4 h-4 rounded-full border-2 border-teal-600 border-t-transparent animate-spin"></div>
+              Redirecting to your dashboard...
             </div>
           </div>
         </main>
@@ -175,243 +166,155 @@ const BidPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 font-sans">
       <Navbar />
-
       <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4 max-w-5xl">
-          {/* Back Button */}
-          <div className="mb-6">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Back
-            </button>
+        <div className="container mx-auto px-4 max-w-3xl">
+
+          {/* Navigation */}
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-6 font-medium"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Job
+          </button>
+
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Submit a Proposal</h1>
+            <p className="text-slate-500">You are bidding on <span className="font-semibold text-slate-900">{job.title}</span></p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-              {error}
-            </div>
-          )}
+          <form onSubmit={handleSubmit} className="space-y-8">
 
-          {successMessage && (
-            <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
-              {successMessage}
-            </div>
-          )}
+            {/* Bid Terms Section */}
+            <section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+              <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Rate and Terms
+              </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Job Details Section */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                {/* Header Section */}
-                <div className="mb-8">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-8 h-8 text-teal-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                        {job.title}
-                      </h1>
-                      <p className="text-slate-500">
-                        Posted by {job.client?.name || "Unknown Client"}
-                      </p>
-                      <p className="text-sm text-slate-400 mt-2">
-                        Job ID: {job._id}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <span className="px-4 py-2 rounded-full bg-teal-50 text-teal-700 text-sm font-medium">
-                      {job.category}
-                    </span>
-                    <span className="px-4 py-2 rounded-full bg-slate-100 text-slate-600 text-sm font-medium">
-                      Fixed Price
-                    </span>
-                  </div>
-                </div>
-
-                <hr className="my-8 border-slate-200" />
-
-                {/* Job Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      Budget
-                    </p>
-                    <p className="text-2xl font-bold text-teal-600">
-                      ₹{job.budget.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      Deadline
-                    </p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {formatDate(job.deadline)}
-                    </p>
-                  </div>
-                </div>
-
-                <hr className="my-8 border-slate-200" />
-
-                {/* Description */}
+              <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                    Description
-                  </h2>
-                  <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
-                    {job.description}
-                  </p>
-                </div>
-              </div>
-            </div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">What is the full amount you'd like to bid for this job?</label>
+                  <p className="text-sm text-slate-500 mb-4">Client's budget is ₹{job.budget?.toLocaleString()}</p>
 
-            {/* Bid Form Section */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm sticky top-28">
-                <h2 className="text-lg font-bold text-slate-900 mb-6">
-                  Place Your Bid
-                </h2>
-
-                <form onSubmit={handleSubmitBid} className="space-y-6">
-                  {/* Bid Amount */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-900 mb-2">
-                      Bid Amount
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-slate-500 font-semibold">
-                        ₹
-                      </span>
+                  <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div className="flex-1">
+                      <span className="font-semibold text-slate-900 block mb-1">Bid Amount</span>
+                      <span className="text-sm text-slate-500">Total amount the client will see</span>
+                    </div>
+                    <div className="relative w-full sm:w-48">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">₹</span>
                       <input
                         type="number"
                         name="amount"
                         value={formData.amount}
-                        onChange={handleInputChange}
-                        min="1"
-                        max={job.budget}
-                        step="1"
-                        placeholder="Enter your bid amount"
-                        className="w-full pl-7 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        onChange={handleChange}
                         required
+                        min="1"
+                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all font-semibold"
+                        placeholder="0.00"
                       />
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">
-                      Maximum bid: ₹{job.budget.toLocaleString()}
-                    </p>
                   </div>
+                </div>
 
-                  {/* Bid Progress */}
-                  {formData.amount && (
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <p className="text-xs text-slate-600">
-                          {Math.round((formData.amount / job.budget) * 100)}% of budget
-                        </p>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-teal-500 to-teal-600 h-2 rounded-full transition-all duration-300"
-                          style={{
-                            width: `${Math.min((formData.amount / job.budget) * 100, 100)}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
+                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between p-4 pl-8 border-l-4 border-slate-200">
+                  <div className="flex-1">
+                    <span className="font-medium text-slate-700 block mb-1">Platform Fee ({PLATFORM_FEE_PERCENT}%)</span>
+                  </div>
+                  <div className="w-full sm:w-48 text-right pr-4">
+                    <span className="font-medium text-slate-500">- ₹{platformFee}</span>
+                  </div>
+                </div>
 
-                  {/* Message */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-900 mb-2">
-                      Your Message
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      placeholder="Tell the client why you're the perfect fit for this project..."
-                      rows="5"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none text-slate-900"
+                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between p-4 bg-teal-50 border border-teal-100 rounded-xl">
+                  <div className="flex-1">
+                    <span className="font-bold text-teal-900 block mb-1">You'll Receive</span>
+                    <span className="text-sm text-teal-700">The estimated amount you'll take home</span>
+                  </div>
+                  <div className="w-full sm:w-48 text-right pr-4">
+                    <span className="font-bold text-xl text-teal-700">₹{takeHome}</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">How long will this project take?</label>
+                  <div className="flex items-center gap-3 w-full sm:w-64">
+                    <input
+                      type="number"
+                      name="deliveryTime"
+                      value={formData.deliveryTime}
+                      onChange={handleChange}
                       required
-                    ></textarea>
-                    <p className="text-xs text-slate-500 mt-2">
-                      {formData.message.length} / 1000 characters
-                    </p>
+                      min="1"
+                      className="w-full h-12 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g. 7"
+                    />
+                    <span className="text-slate-600 font-medium">Days</span>
                   </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {submitting ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit Bid"
-                    )}
-                  </button>
-
-                  <p className="text-xs text-slate-500 text-center mt-4">
-                    By placing a bid, you agree to our Terms & Conditions
-                  </p>
-                </form>
+                </div>
               </div>
+            </section>
+
+            {/* Cover Letter Section */}
+            <section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+              <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                Cover Letter
+              </h2>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Introduce yourself and explain why you're a strong candidate for this job.</label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={8}
+                  className="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all resize-y"
+                  placeholder="Hi there! I read your job posting carefully and I'm confident I can help you because..."
+                />
+              </div>
+            </section>
+
+            {/* Actions */}
+            <div className="flex gap-4 justify-end pt-4">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-8 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-8 py-3 flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+              >
+                {submitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Proposal"
+                )}
+              </button>
             </div>
-          </div>
+
+          </form>
+
         </div>
       </main>
-
       <Footer />
     </div>
   );
-};
-
-export default BidPage;
+}

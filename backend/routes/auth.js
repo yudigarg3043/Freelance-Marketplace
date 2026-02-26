@@ -62,5 +62,30 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// Update Profile
+router.put('/me', auth, async (req, res) => {
+  try {
+    const updates = {
+      name: req.body.name,
+      title: req.body.title,
+      phone: req.body.phone,
+      location: req.body.location,
+      bio: req.body.bio,
+      skills: req.body.skills,
+    };
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updates,
+      { new: true }
+    ).select('-password');
+
+    res.json({ user });
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+});
+
 
 module.exports = router;

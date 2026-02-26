@@ -131,14 +131,14 @@ const FreelancerDashboard = () => {
           </Link>
 
           <Link
-            href="/dashboard/bids"
+            href="/dashboard/myBids"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             My Bids
           </Link>
 
-          <Link
-            href="/dashboard/messages"
+          {/* <Link
+            href="/MyDashboard/MyMessages"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Messages
@@ -147,21 +147,21 @@ const FreelancerDashboard = () => {
                 {unreadCount}
               </span>
             )}
-          </Link>
+          </Link> */}
 
           <Link
-            href="/dashboard/profile"
+            href="/dashboard/myProfile"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Profile
           </Link>
 
-          <Link
+          {/* <Link
             href="/dashboard/settings"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
           >
             Settings
-          </Link>
+          </Link> */}
         </nav>
       </aside>
 

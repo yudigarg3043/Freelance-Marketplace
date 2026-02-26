@@ -43,7 +43,7 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-router.get('my-bids', auth, async (req, res) => {
+router.get('/my-bids', auth, async (req, res) => {
     try {
         const bids = await Bid.find({ freelancer: req.user._id })
             .populate('job', 'title status')
