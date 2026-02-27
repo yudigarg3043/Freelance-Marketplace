@@ -41,6 +41,7 @@ const ClientDashboard = () => {
   const [expandedJob, setExpandedJob] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [showAll, setShowAll] = useState(false);
 
   const fetchDashboard = async () => {
     const token = localStorage.getItem("token");
@@ -95,6 +96,8 @@ const ClientDashboard = () => {
       ? allJobs
       : allJobs.filter((job) => job.status === filter);
 
+  const displayedJobs = showAll ? filteredJobs : filteredJobs.slice(0, 6);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -108,8 +111,8 @@ const ClientDashboard = () => {
       {/* Sidebar */}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform ${sidebarOpen
-            ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
+          ? "translate-x-0"
+          : "-translate-x-full lg:translate-x-0"
           }`}
       >
         <div className="p-6 border-b border-slate-200">
@@ -120,8 +123,8 @@ const ClientDashboard = () => {
           <Link
             href="/dashboard/client"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition ${pathname === "/dashboard/client"
-                ? "bg-teal-50 text-teal-600"
-                : "text-slate-600 hover:bg-slate-100"
+              ? "bg-teal-50 text-teal-600"
+              : "text-slate-600 hover:bg-slate-100"
               }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
@@ -249,8 +252,8 @@ const ClientDashboard = () => {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === f
-                    ? "bg-teal-500 text-white"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-teal-500 text-white"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                   }`}
               >
                 {f === "all" ? "All Jobs" : f.charAt(0).toUpperCase() + f.slice(1).replace("-", " ")}
@@ -273,7 +276,7 @@ const ClientDashboard = () => {
                 </button>
               </div>
             ) : (
-              filteredJobs.map((job) => {
+              displayedJobs.map((job) => {
                 const pendingCount = job.bids?.filter((b) => b.status === "pending").length || 0;
                 const statusStyle = STATUS_CONFIG[job.status] || STATUS_CONFIG.open;
                 const isExpanded = expandedJob === job._id;
@@ -421,6 +424,25 @@ const ClientDashboard = () => {
               })
             )}
           </div>
+
+          {!loading && filteredJobs.length > 6 && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="px-6 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-700 font-semibold hover:border-teal-500 hover:text-teal-600 transition-all duration-300 flex items-center gap-2"
+              >
+                {showAll ? "View Less" : "View More"}
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </main>
       </div>
     </div>

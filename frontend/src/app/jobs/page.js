@@ -37,6 +37,7 @@ const Jobs = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const categories = [
     "Web Development",
@@ -78,6 +79,8 @@ const Jobs = () => {
 
     return matchesSearch && matchesCategory;
   });
+
+  const displayedJobs = showAll ? filteredJobs : filteredJobs.slice(0, 6);
 
   if (loading) {
     return (
@@ -140,13 +143,13 @@ const Jobs = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
             <p className="text-slate-500">
-              Showing <span className="font-semibold text-slate-900">{filteredJobs.length}</span> jobs
+              Showing <span className="font-semibold text-slate-900">{displayedJobs.length}</span> of <span className="font-semibold text-slate-900">{filteredJobs.length}</span> jobs
             </p>
             {error && <span className="text-red-500 text-sm font-medium">{error}</span>}
           </div>
 
           <div className="space-y-4">
-            {filteredJobs.map((job) => (
+            {displayedJobs.map((job) => (
               <div
                 key={job._id}
                 className="bg-white rounded-2xl p-6 border border-slate-200 hover:border-teal-300 hover:shadow-lg transition-all duration-300"
@@ -212,6 +215,25 @@ const Jobs = () => {
               </div>
             ))}
           </div>
+
+          {!loading && filteredJobs.length > 6 && (
+            <div className="mt-10 flex justify-center">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="px-6 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-700 font-semibold hover:border-teal-500 hover:text-teal-600 transition-all duration-300 flex items-center gap-2"
+              >
+                {showAll ? "View Less" : "View More"}
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {!loading && filteredJobs.length === 0 && (
             <div className="text-center py-16">

@@ -186,6 +186,9 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
+            <Link href="/" className="text-slate-500 hover:text-slate-900 font-medium">
+              Home
+            </Link>
             <Link href="/jobs" className="text-slate-500 hover:text-slate-900 font-medium">
               Browse Jobs
             </Link>
@@ -378,7 +381,11 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden py-4 border-t border-slate-200/50 flex flex-col gap-4 text-slate-800">
+            <Link href="/" onClick={() => setIsOpen(false)}>Home</Link>
             <Link href="/jobs" onClick={() => setIsOpen(false)}>Browse Jobs</Link>
+            {isLoggedIn && user?.role === "client" && (
+              <Link href="/post-job" onClick={() => setIsOpen(false)}>Post a Job</Link>
+            )}
             <Link href="/HowItWorks" onClick={() => setIsOpen(false)}>How It Works</Link>
 
             <div className="pt-4 border-t border-slate-200/50 flex flex-col gap-2">

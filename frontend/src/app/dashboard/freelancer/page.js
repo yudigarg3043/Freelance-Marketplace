@@ -14,6 +14,7 @@ const FreelancerDashboard = () => {
   const [activeProjects, setActiveProjects] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -92,6 +93,8 @@ const FreelancerDashboard = () => {
     fetchUnread();
   }, [router]);
 
+  const displayedProjects = showAll ? activeProjects : activeProjects.slice(0, 6);
+
   if (loading) {
     return <div className="p-10">Loading dashboard...</div>;
   }
@@ -101,8 +104,8 @@ const FreelancerDashboard = () => {
 
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform ${sidebarOpen
-            ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
+          ? "translate-x-0"
+          : "-translate-x-full lg:translate-x-0"
           }`}
       >
         <div className="p-6 border-b border-slate-200">
@@ -114,8 +117,8 @@ const FreelancerDashboard = () => {
           <Link
             href="/dashboard/freelancer"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition ${pathname === "/dashboard/freelancer"
-                ? "bg-teal-50 text-teal-600"
-                : "text-slate-600 hover:bg-slate-100"
+              ? "bg-teal-50 text-teal-600"
+              : "text-slate-600 hover:bg-slate-100"
               }`}
           >
             Dashboard
@@ -207,7 +210,7 @@ const FreelancerDashboard = () => {
               </p>
             ) : (
               <div className="space-y-4">
-                {activeProjects.map((project) => (
+                {displayedProjects.map((project) => (
                   <div
                     key={project._id}
                     className="p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition"
@@ -226,6 +229,25 @@ const FreelancerDashboard = () => {
               </div>
             )}
           </div>
+
+          {!loading && activeProjects.length > 6 && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="px-6 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-700 font-semibold hover:border-teal-500 hover:text-teal-600 transition-all duration-300 flex items-center gap-2"
+              >
+                {showAll ? "View Less" : "View More"}
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          )}
 
         </main>
       </div>
