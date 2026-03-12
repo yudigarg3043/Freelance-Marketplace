@@ -2,7 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const Bid = require('../models/Bid');
 const Job = require('../models/Job');
-const Notification = require('../models/Notification');
+
 
 const router = express.Router();
 
@@ -31,13 +31,6 @@ router.post('/', auth, async (req, res) => {
       await existingBid.save();
       await existingBid.populate('freelancer', 'name');
 
-      // Notify client about updated bid
-      await Notification.create({
-        recipient: job.client,
-        type: 'bid_updated',
-        message: `${req.user.name} updated their proposal on "${job.title}" to ₹${amount.toLocaleString()}`,
-        link: `/jobs/${job._id}`,
-      });
 
       return res.json({ message: 'Bid updated successfully', bid: existingBid, updated: true });
     }
@@ -57,13 +50,6 @@ router.post('/', auth, async (req, res) => {
 
     await bid.populate('freelancer', 'name');
 
-    // Notify client about new bid
-    await Notification.create({
-      recipient: job.client,
-      type: 'new_bid',
-      message: `${req.user.name} submitted a proposal on "${job.title}" for ₹${amount.toLocaleString()}`,
-      link: `/jobs/${job._id}`,
-    });
 
     res.status(201).json(bid);
   } catch (error) {
@@ -145,24 +131,7 @@ router.patch('/:bidId/accept', auth, async (req, res) => {
 
     await bid.populate('freelancer', 'name');
 
-    // Notify the accepted freelancer
-    await Notification.create({
-      recipient: bid.freelancer._id,
-      type: 'bid_accepted',
-      message: `🎉 Your proposal on "${job.title}" has been accepted!`,
-      link: `/jobs/${job._id}`,
-    });
 
-    // Notify rejected freelancers
-    const rejectedBids = await Bid.find({ job: bid.job, _id: { $ne: bid._id } }).populate('freelancer', 'name');
-    for (const rBid of rejectedBids) {
-      await Notification.create({
-        recipient: rBid.freelancer._id,
-        type: 'bid_rejected',
-        message: `Your proposal on "${job.title}" was not selected.`,
-        link: `/jobs/${job._id}`,
-      });
-    }
 
     res.json({ message: 'Bid accepted successfully', bid });
   } catch (err) {
@@ -192,13 +161,7 @@ router.patch('/:bidId/reject', auth, async (req, res) => {
 
     await bid.populate('freelancer', 'name');
 
-    // Notify the rejected freelancer
-    await Notification.create({
-      recipient: bid.freelancer._id,
-      type: 'bid_rejected',
-      message: `Your proposal on "${job.title}" was rejected.`,
-      link: `/jobs/${job._id}`,
-    });
+
 
     res.json({ message: 'Bid rejected', bid });
   } catch (err) {

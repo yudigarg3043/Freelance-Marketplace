@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "../../components/Layout/Navbar";
-import Footer from "../../components/Layout/Footer";
+import DashboardSidebar from "../../components/Layout/DashboardSidebar";
 
 const STATUS_CONFIG = {
     "in-progress": {
@@ -68,26 +66,24 @@ const MyProjects = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans">
-            <Navbar />
-            <main className="pt-24 pb-16">
-                <div className="container mx-auto px-4 max-w-5xl">
+        <div className="min-h-screen bg-slate-50 flex">
+            <DashboardSidebar role="freelancer" />
 
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h1 className="text-3xl font-bold text-slate-900">My Projects</h1>
-                            <p className="text-slate-500 mt-1">
-                                Jobs where your bid was accepted — deliver great work!
-                            </p>
-                        </div>
-                        <Link
-                            href="/dashboard/freelancer"
-                            className="px-4 py-2 rounded-xl text-teal-600 hover:bg-teal-50 font-medium transition"
-                        >
-                            ← Back to Dashboard
-                        </Link>
-                    </div>
+            <div className="flex-1 flex flex-col min-h-screen">
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+                    <h1 className="text-xl font-semibold text-slate-900">My Projects</h1>
+                    <button
+                        onClick={() => router.push("/jobs")}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white text-sm font-medium hover:opacity-90"
+                    >
+                        + Find Jobs
+                    </button>
+                </header>
+
+                <main className="p-6 flex-1 overflow-auto">
+                    <p className="text-slate-500 mb-6">
+                        Jobs where your bid was accepted — deliver great work!
+                    </p>
 
                     {error && (
                         <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -95,7 +91,6 @@ const MyProjects = () => {
                         </div>
                     )}
 
-                    {/* Projects List */}
                     {projects.length === 0 ? (
                         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
                             <svg
@@ -208,9 +203,8 @@ const MyProjects = () => {
                             })}
                         </div>
                     )}
-                </div>
-            </main>
-            <Footer />
+                </main>
+            </div>
         </div>
     );
 };

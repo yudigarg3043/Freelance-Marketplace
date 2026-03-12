@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
-import Header from "../../components/credentials/Header";
+import { useRouter } from "next/navigation";
+import DashboardSidebar from "../../components/Layout/DashboardSidebar";
 
 const FreelancerDashboard = () => {
   const router = useRouter();
-  const pathname = usePathname();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [stats, setStats] = useState([]);
   const [activeProjects, setActiveProjects] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
@@ -66,31 +64,8 @@ const FreelancerDashboard = () => {
       }
     };
 
-    const fetchUnread = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/messages/unread-count`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          setUnreadCount(data.unreadCount);
-        }
-      } catch (err) {
-        console.log("Messaging not implemented yet");
-      }
-    };
 
     fetchDashboard();
-    fetchUnread();
   }, [router]);
 
   const displayedProjects = showAll ? activeProjects : activeProjects.slice(0, 6);
@@ -102,69 +77,7 @@ const FreelancerDashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex">
 
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform ${sidebarOpen
-          ? "translate-x-0"
-          : "-translate-x-full lg:translate-x-0"
-          }`}
-      >
-        <div className="p-6 border-b border-slate-200">
-          <Header />
-        </div>
-
-        <nav className="p-4 space-y-2">
-
-          <Link
-            href="/dashboard/freelancer"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition ${pathname === "/dashboard/freelancer"
-              ? "bg-teal-50 text-teal-600"
-              : "text-slate-600 hover:bg-slate-100"
-              }`}
-          >
-            Dashboard
-          </Link>
-
-          <Link
-            href="/dashboard/projects"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
-          >
-            My Projects
-          </Link>
-
-          <Link
-            href="/dashboard/myBids"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
-          >
-            My Bids
-          </Link>
-
-          <Link
-            href="/dashboard/myMessages"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
-          >
-            Messages
-            {unreadCount > 0 && (
-              <span className="ml-auto bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
-                {unreadCount}
-              </span>
-            )}
-          </Link>
-
-          <Link
-            href="/dashboard/myProfile"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
-          >
-            Profile
-          </Link>
-
-          {/* <Link
-            href="/dashboard/settings"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition"
-          >
-            Settings
-          </Link> */}
-        </nav>
-      </aside>
+      <DashboardSidebar role="freelancer" />
 
       <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
 

@@ -5,9 +5,9 @@ const cors = require('cors');
 const auth = require('./routes/auth');
 const jobs = require('./routes/jobs');
 const dashboard = require('./routes/dashboard');
-const messages = require('./routes/message');
+
 const bids = require('./routes/bids');
-const notifications = require('./routes/notification');
+
 
 const app = express();
 
@@ -42,9 +42,9 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/auth', auth);
 app.use('/api/jobs', jobs);
 app.use('/api/dashboard', dashboard);
-app.use('/api/messages', messages);
+
 app.use('/api/bids', bids);
-app.use('/api/notifications', notifications);
+
 
 const PORT = process.env.Port || 5000;
 

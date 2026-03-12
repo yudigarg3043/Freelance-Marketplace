@@ -17,33 +17,30 @@ const AVATAR_COLORS = [
   "from-cyan-500 to-cyan-600",
 ];
 
-const STATUS_CONFIG = {
-  open: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
-  "in-progress": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
-  completed: { bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200", dot: "bg-slate-400" },
-};
-
 const BID_STATUS = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
   accepted: "bg-emerald-50 text-emerald-700 border-emerald-200",
   rejected: "bg-red-50 text-red-600 border-red-200",
 };
 
-const ClientDashboard = () => {
-  const router = useRouter();
+const STATUS_CONFIG = {
+  open: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", label: "Open" },
+  "in-progress": { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", label: "In Progress" },
+  completed: { bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200", label: "Completed" },
+};
 
-  const [stats, setStats] = useState({});
-  const [allJobs, setAllJobs] = useState([]);
+export default function ClientProjects() {
+  const router = useRouter();
+  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [showAll, setShowAll] = useState(false);
   const [expandedJob, setExpandedJob] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
-  const fetchDashboard = async () => {
+  const fetchJobs = async () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    if (!token) { router.push("/login"); return; }
 
     try {
       const res = await fetch(
@@ -52,8 +49,7 @@ const ClientDashboard = () => {
       );
       if (!res.ok) throw new Error("Unauthorized");
       const data = await res.json();
-      setStats(data.stats);
-      setAllJobs(data.allJobs || []);
+      setJobs(data.allJobs || []);
     } catch (err) {
       router.push("/login");
     } finally {
@@ -61,9 +57,7 @@ const ClientDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDashboard();
-  }, [router]);
+  useEffect(() => { fetchJobs(); }, [router]);
 
   const handleBidAction = async (bidId, action) => {
     setActionLoading(bidId + action);
@@ -78,7 +72,7 @@ const ClientDashboard = () => {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || `Failed to ${action} bid`);
-      await fetchDashboard();
+      await fetchJobs();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -86,7 +80,8 @@ const ClientDashboard = () => {
     }
   };
 
-  const displayedJobs = allJobs.slice(0, 3);
+  const filteredJobs = filter === "all" ? jobs : jobs.filter((j) => j.status === filter);
+  const displayedJobs = showAll ? filteredJobs : filteredJobs.slice(0, 6);
 
   if (loading) {
     return (
@@ -100,15 +95,9 @@ const ClientDashboard = () => {
     <div className="min-h-screen bg-slate-50 flex">
       <DashboardSidebar role="client" />
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-slate-900">
-              Client Dashboard
-            </h1>
-          </div>
-
+          <h1 className="text-xl font-semibold text-slate-900">My Projects</h1>
           <button
             onClick={() => router.push("/post-job")}
             className="px-5 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white text-sm font-semibold hover:opacity-90 flex items-center gap-2"
@@ -119,105 +108,48 @@ const ClientDashboard = () => {
         </header>
 
         <main className="p-6 flex-1 overflow-auto">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalJobs || 0}</p>
-              <p className="text-sm text-slate-500">Projects Posted</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-slate-900">{stats.activeProjects || 0}</p>
-              <p className="text-sm text-slate-500">Active Projects</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition relative">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                </div>
-                {stats.pendingBids > 0 && (
-                  <span className="absolute top-4 right-4 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center animate-pulse">
-                    {stats.pendingBids}
-                  </span>
-                )}
-              </div>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalBids || 0}</p>
-              <p className="text-sm text-slate-500">Total Proposals</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-slate-900">₹{(stats.totalSpent || 0).toLocaleString()}</p>
-              <p className="text-sm text-slate-500">Total Spent</p>
-            </div>
-          </div>
-
-          {/* Pending Bids Notification Banner */}
-          {stats.pendingBids > 0 && (
-            <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              </div>
-              <div>
-                <p className="font-semibold text-teal-900">
-                  You have {stats.pendingBids} new proposal{stats.pendingBids > 1 ? "s" : ""} waiting for review!
-                </p>
-                <p className="text-sm text-teal-700">Click on a job below to view and respond to proposals.</p>
-              </div>
-            </div>
-          )}
-
-          {/* Recent Projects */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-slate-900">Recent Projects</h2>
-            {allJobs.length > 3 && (
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mb-6">
+            {["all", "open", "in-progress", "completed"].map((f) => (
               <button
-                onClick={() => router.push("/dashboard/clientProjects")}
-                className="text-sm font-medium text-teal-600 hover:text-teal-700 transition"
+                key={f}
+                onClick={() => { setFilter(f); setShowAll(false); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  filter === f
+                    ? "bg-teal-500 text-white"
+                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                }`}
               >
-                View All Projects →
+                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1).replace("-", " ")}
               </button>
-            )}
+            ))}
           </div>
 
           {/* Jobs List */}
-          <div className="space-y-4">
-            {allJobs.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-                <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">No jobs found</h3>
-                <p className="text-slate-500 text-sm mb-4">You haven't posted any jobs yet.</p>
-                <button
-                  onClick={() => router.push("/post-job")}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold"
-                >
-                  Post Your First Job
-                </button>
-              </div>
-            ) : (
-              displayedJobs.map((job) => {
-                const pendingCount = job.bids?.filter((b) => b.status === "pending").length || 0;
+          {filteredJobs.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+              <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-slate-900 mb-1">No projects found</h3>
+              <p className="text-slate-500 text-sm mb-4">Post your first job to get started.</p>
+              <button
+                onClick={() => router.push("/post-job")}
+                className="px-6 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold"
+              >
+                Post a Job
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {displayedJobs.map((job) => {
                 const statusStyle = STATUS_CONFIG[job.status] || STATUS_CONFIG.open;
+                const pendingCount = job.bids?.filter((b) => b.status === "pending").length || 0;
                 const isExpanded = expandedJob === job._id;
 
                 return (
                   <div key={job._id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-sm transition">
-                    {/* Job Header - Clickable */}
+                    {/* Job Header - Clickable to expand */}
                     <div
                       className="p-6 cursor-pointer"
                       onClick={() => setExpandedJob(isExpanded ? null : job._id)}
@@ -227,7 +159,7 @@ const ClientDashboard = () => {
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-lg font-bold text-slate-900">{job.title}</h3>
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}>
-                              {job.status}
+                              {statusStyle.label}
                             </span>
                             {pendingCount > 0 && (
                               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
@@ -235,6 +167,8 @@ const ClientDashboard = () => {
                               </span>
                             )}
                           </div>
+
+                          <p className="text-sm text-slate-500 line-clamp-2 mb-3">{job.description}</p>
 
                           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                             <span className="flex items-center gap-1">
@@ -355,15 +289,30 @@ const ClientDashboard = () => {
                     )}
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
 
-
+          {filteredJobs.length > 6 && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="px-6 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-700 font-semibold hover:border-teal-500 hover:text-teal-600 transition-all duration-300 flex items-center gap-2"
+              >
+                {showAll ? "View Less" : `View More (${filteredJobs.length - 6} more)`}
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </main>
       </div>
     </div>
   );
-};
-
-export default ClientDashboard;
+}
