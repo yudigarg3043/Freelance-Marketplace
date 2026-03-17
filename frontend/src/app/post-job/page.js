@@ -29,6 +29,7 @@ const PostJob = () => {
     category: "",
     budget: "",
     deadline: "",
+    completionDeadline: "",
   });
 
   useEffect(() => {
@@ -84,6 +85,12 @@ const PostJob = () => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+
+    if (new Date(formData.deadline) >= new Date(formData.completionDeadline)) {
+      setError("Bidding deadline must be before project completion deadline.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -146,140 +153,184 @@ const PostJob = () => {
         </div>
       )}
 
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F8FAFC]">
         <Navbar />
 
-        <main className="pt-24 pb-16">
-          <div className="bg-slate-100 py-12 mb-8">
-            <div className="container mx-auto px-3">
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                Post a New Job
+        <main className="pt-28 pb-20">
+          <div className="container mx-auto px-4 max-w-4xl">
+            {/* Page Header */}
+            <div className="text-center mb-12">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-teal-50 text-teal-700 text-sm font-bold tracking-wide uppercase mb-4 shadow-sm border border-teal-100">
+                New Opportunity
+              </span>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
+                Post a Job
               </h1>
-              <p className="text-slate-500 max-w-2xl">
-                Find the perfect freelancer for your project.
+              <p className="text-slate-500 text-lg max-w-xl mx-auto">
+                Fill in the details below to find the best global talent for your project.
               </p>
             </div>
-          </div>
 
-          <div className="container mx-auto px-4">
-            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+            <form onSubmit={handleSubmit} className="space-y-8">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6">
-                  {error}
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center gap-4 animate-shake">
+                  <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="font-semibold">{error}</p>
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl p-6 border border-slate-200 mb-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900 mb-6">
-                  Job Details
-                </h2>
-
-                <div className="space-y-6">
+              {/* Step 1: Core Details */}
+              <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-200 shadow-xl shadow-slate-200/50">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Job Title <span className="text-red-500">*</span>
-                    </label>
+                    <h2 className="text-2xl font-bold text-slate-900">Project Identity</h2>
+                    <p className="text-slate-500 font-medium">Define the core aspects of your job</p>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Job Title</label>
                     <input
                       type="text"
                       name="title"
                       value={formData.title}
                       onChange={handleChange}
-                      placeholder="e.g. Senior React Developer for SaaS Platform"
-                      className={inputClass}
+                      placeholder="e.g. Senior Frontend Engineer for Fintech Dashboard"
+                      className="w-full h-14 px-6 rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all font-medium text-lg"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Job Description <span className="text-red-500">*</span>
-                    </label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Job Description</label>
                     <textarea
                       name="description"
                       value={formData.description}
                       onChange={handleChange}
-                      placeholder="Describe your project requirements..."
+                      placeholder="Describe the challenges, tech stack, and goals..."
                       rows={6}
-                      className={textareaClass}
+                      className="w-full px-6 py-5 rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all font-medium resize-none leading-relaxed"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Category <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      className={inputClass}
-                      required
-                    >
-                      <option value="">Select a category</option>
-                      {categories.map((cat, index) => (
-                        <option key={index} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Industry Category</label>
+                    <div className="relative">
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleChange}
+                        className="w-full h-14 px-6 rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all font-semibold appearance-none cursor-pointer"
+                        required
+                      >
+                        <option value="">Choose a specialized field</option>
+                        {categories.map((cat, index) => (
+                          <option key={index} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 border border-slate-200 mb-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900 mb-6">
-                  Budget & Deadline
-                </h2>
-
-                <div className="space-y-6">
+              {/* Step 2: Financials & Timeline */}
+              <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-200 shadow-xl shadow-slate-200/50">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Budget (₹) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="budget"
-                      value={formData.budget}
-                      onChange={handleChange}
-                      min="1"
-                      className={inputClass}
-                      required
-                    />
+                    <h2 className="text-2xl font-bold text-slate-900">Financials & Logistics</h2>
+                    <p className="text-slate-500 font-medium">Set your budget and critical milestones</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1 text-emerald-600">Estimated Budget (₹)</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-emerald-600 font-bold text-xl">₹</div>
+                      <input
+                        type="number"
+                        name="budget"
+                        value={formData.budget}
+                        onChange={handleChange}
+                        min="1"
+                        placeholder="0.00"
+                        className="w-full h-16 pl-12 pr-6 rounded-2xl border border-emerald-100 bg-emerald-50/30 text-emerald-700 placeholder:text-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-black text-2xl"
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Deadline <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="deadline"
-                      value={formData.deadline}
-                      onChange={handleChange}
-                      min={new Date().toISOString().split("T")[0]}
-                      className={inputClass}
-                      required
-                    />
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Bidding Closes On</label>
+                    <div className="relative">
+                      <input
+                        type="datetime-local"
+                        name="deadline"
+                        value={formData.deadline}
+                        onChange={handleChange}
+                        min={new Date().toISOString().slice(0, 16)}
+                        className="w-full h-14 px-6 rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all font-semibold"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Project Expected Done By</label>
+                    <div className="relative">
+                      <input
+                        type="datetime-local"
+                        name="completionDeadline"
+                        value={formData.completionDeadline}
+                        onChange={handleChange}
+                        min={formData.deadline || new Date().toISOString().slice(0, 16)}
+                        className="w-full h-14 px-6 rounded-2xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all font-semibold"
+                        required
+                      />
+                    </div>
+                    {formData.deadline && formData.completionDeadline && (
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-2 ml-1">
+                        Timeline Span: {Math.max(0, Math.floor((new Date(formData.completionDeadline) - new Date(formData.deadline))/(1000*60*60*24)))} Days
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-4">
                 <button
                   type="button"
                   onClick={() => router.back()}
-                  className="h-12 px-6 rounded-xl border border-slate-200 bg-white text-slate-900 font-medium hover:bg-slate-100 transition-colors"
+                  className="w-full sm:w-auto px-10 h-14 rounded-2xl border-2 border-slate-200 bg-white text-slate-600 font-bold hover:bg-slate-50 active:scale-95 transition-all"
                 >
-                  Cancel
+                  Discard Draft
                 </button>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="h-12 px-8 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-12 h-14 rounded-2xl bg-[#14A887] text-white font-black text-lg hover:bg-[#108A6F] shadow-xl shadow-teal-500/20 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3 group"
                 >
-                  {isLoading ? "Posting..." : "Post Job"}
+                  {isLoading ? (
+                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span>Launch Project</span>
+                      <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

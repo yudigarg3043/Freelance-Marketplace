@@ -131,7 +131,7 @@ const MyProjects = () => {
                                     <div
                                         key={project._id}
                                         className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-md transition cursor-pointer"
-                                        onClick={() => router.push(`/jobs/${project._id}`)}
+                                        onClick={() => router.push(`/dashboard/projects/${project._id}`)}
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex-1">

@@ -51,6 +51,7 @@ const JobDetail = () => {
         description: "",
         budget: "",
         deadline: "",
+        completionDeadline: "",
         category: "Web Development",
     });
 
@@ -90,7 +91,8 @@ const JobDetail = () => {
                 title: data.title,
                 description: data.description,
                 budget: data.budget,
-                deadline: data.deadline.split("T")[0],
+                deadline: data.deadline.slice(0, 16),
+                completionDeadline: data.completionDeadline?.slice(0, 16) || "",
                 category: data.category,
             });
             setLoading(false);
@@ -115,6 +117,12 @@ const JobDetail = () => {
             setError("Budget must be greater than 0.");
             return;
         }
+
+        if (new Date(formData.deadline) >= new Date(formData.completionDeadline)) {
+            setError("Bidding deadline must be before project completion deadline.");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const token = localStorage.getItem("token");
@@ -129,13 +137,16 @@ const JobDetail = () => {
                     body: JSON.stringify(formData),
                 }
             );
-            if (!response.ok) throw new Error("Failed to update job");
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || "Failed to update job");
+            }
             const updatedJob = await response.json();
             setJob(updatedJob);
             setIsEditing(false);
             setError(null);
         } catch (err) {
-            setError("Failed to update job.");
+            setError(err.message || "Failed to update job.");
         } finally {
             setIsSaving(false);
         }
@@ -252,7 +263,7 @@ const JobDetail = () => {
                         <hr className="my-6 border-slate-100" />
 
                         {/* Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                             <div>
                                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Budget</p>
                                 {isEditing ? (
@@ -262,11 +273,19 @@ const JobDetail = () => {
                                 )}
                             </div>
                             <div>
-                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Deadline</p>
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Bid Deadline</p>
                                 {isEditing ? (
-                                    <input type="date" name="deadline" value={formData.deadline} onChange={handleInputChange} className="w-full text-lg font-bold text-slate-900 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                                    <input type="datetime-local" name="deadline" value={formData.deadline} onChange={handleInputChange} className="w-full text-sm font-bold text-slate-900 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
                                 ) : (
-                                    <p className="text-lg font-bold text-slate-900">{formatDate(job.deadline)}</p>
+                                    <p className="text-sm font-bold text-slate-900">{new Date(job.deadline).toLocaleString()}</p>
+                                )}
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Project Deadline</p>
+                                {isEditing ? (
+                                    <input type="datetime-local" name="completionDeadline" value={formData.completionDeadline} onChange={handleInputChange} className="w-full text-sm font-bold text-slate-900 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                                ) : (
+                                    <p className="text-sm font-bold text-slate-900">{job.completionDeadline ? new Date(job.completionDeadline).toLocaleString() : "N/A"}</p>
                                 )}
                             </div>
                             <div>
@@ -300,7 +319,7 @@ const JobDetail = () => {
                         {/* Edit Actions */}
                         {isEditing && (
                             <div className="flex gap-4 justify-end">
-                                <button onClick={() => { setIsEditing(false); setFormData({ title: job.title, description: job.description, budget: job.budget, deadline: job.deadline.split("T")[0], category: job.category }); }} className="px-6 py-2 rounded-xl border border-slate-300 text-slate-900 font-semibold hover:bg-slate-50">Cancel</button>
+                                <button onClick={() => { setIsEditing(false); setFormData({ title: job.title, description: job.description, budget: job.budget, deadline: job.deadline.slice(0, 16), completionDeadline: job.completionDeadline?.slice(0, 16) || "", category: job.category }); }} className="px-6 py-2 rounded-xl border border-slate-300 text-slate-900 font-semibold hover:bg-slate-50">Cancel</button>
                                 <button onClick={handleSave} disabled={isSaving} className="px-6 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold disabled:opacity-50">{isSaving ? "Saving..." : "Save Changes"}</button>
                             </div>
                         )}

@@ -144,11 +144,40 @@ export default function BidPage() {
       }, 2000);
 
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const isClosed = job?.status !== "open" || !!job?.acceptedBid;
+  const deadlinePassed = job?.deadline ? new Date(job.deadline) < new Date() : false;
+
+  const Modal = ({ title, message, type = "error" }) => (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center transform transition-all animate-in zoom-in duration-300">
+        <div className={`w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center ${type === "error" ? "bg-red-50" : "bg-teal-50"}`}>
+          {type === "error" ? (
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          ) : (
+            <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">{title}</h2>
+        <p className="text-slate-500 mb-8 leading-relaxed">{message}</p>
+        <button
+          onClick={() => router.push("/jobs")}
+          className="w-full py-3 px-6 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-200"
+        >
+          Explore Other Jobs
+        </button>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -159,15 +188,43 @@ export default function BidPage() {
   }
 
   if (error || !job) {
+    const isAccessDenied = error === "Only freelancers can place bids.";
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
         <Navbar />
         <main className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl p-6 shadow-sm border border-slate-200">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-slate-900">Job Not Found</h1>
+          <div className="bg-white rounded-2xl w-full max-w-xl p-8 shadow-sm border border-slate-200 text-center">
+            <div className={`w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center ${isAccessDenied ? "bg-amber-50" : "bg-red-50"}`}>
+              {isAccessDenied ? (
+                <svg className="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              ) : (
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
             </div>
-            <p className="text-red-500 mt-4">{error}</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              {isAccessDenied ? "Freelancers Only" : "Job Not Found"}
+            </h1>
+            <p className="text-slate-500 mb-8">{error || "The job you are looking for does not exist or has been removed."}</p>
+            <div className="flex flex-col gap-3">
+              {id && (
+                <button
+                  onClick={() => router.push(`/jobs/${id}`)}
+                  className="w-full py-3 px-6 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-lg shadow-teal-100"
+                >
+                  View Job Details
+                </button>
+              )}
+              <button
+                onClick={() => router.push("/jobs")}
+                className="w-full py-3 px-6 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                Browse All Jobs
+              </button>
+            </div>
           </div>
         </main>
         <Footer />
@@ -203,6 +260,20 @@ export default function BidPage() {
     <div className="min-h-screen bg-[#F8FAFC] font-sans">
       <Navbar />
 
+      {error && (
+        <Modal 
+          title="Cannot Place Bid" 
+          message={error} 
+        />
+      )}
+
+      {(isClosed || deadlinePassed) && (
+        <Modal 
+          title="Job Closed" 
+          message={deadlinePassed ? "The deadline for this job has passed. You can no longer place bids." : "The client has already hired a freelancer for this job."} 
+        />
+      )}
+
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-5xl">
 
@@ -228,9 +299,15 @@ export default function BidPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                Deadline: {new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                Bid Deadline: {new Date(job.deadline).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Project Deadline: {job.completionDeadline ? new Date(job.completionDeadline).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: '2-digit', minute: '2-digit' }) : "N/A"}
               </span>
               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-xs text-slate-600">{job.category}</span>
+              {isClosed && <span className="px-2 py-0.5 rounded-full bg-red-50 text-xs text-red-600 font-medium">Hired</span>}
+              {deadlinePassed && !isClosed && <span className="px-2 py-0.5 rounded-full bg-amber-50 text-xs text-amber-600 font-medium">Deadline Passed</span>}
             </div>
           </div>
 
@@ -280,7 +357,16 @@ export default function BidPage() {
 
             {/* Right Column: Bid Form */}
             <div className="w-full lg:w-2/3">
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm relative overflow-hidden">
+                {(isClosed || deadlinePassed) && (
+                  <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] flex items-center justify-center p-6 text-center">
+                    <div className="max-w-xs">
+                      <p className="text-slate-900 font-bold text-lg mb-1">Bidding is Closed</p>
+                      <p className="text-slate-500 text-sm">You can no longer submit proposals for this project.</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">{isUpdate ? "Update Your Bid" : "Place Your Bid"}</h2>
                   <p className="text-slate-500">{isUpdate ? "Modify your existing proposal for this job." : "Submit your proposal and bid amount for this job."}</p>
@@ -302,7 +388,8 @@ export default function BidPage() {
                         onChange={handleChange}
                         required
                         min="1"
-                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                        disabled={isClosed || deadlinePassed}
+                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400 disabled:opacity-50"
                         placeholder="Enter your bid amount"
                       />
                     </div>
@@ -320,7 +407,8 @@ export default function BidPage() {
                       onChange={handleChange}
                       required
                       min="1"
-                      className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400"
+                      disabled={isClosed || deadlinePassed}
+                      className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all placeholder-slate-400 disabled:opacity-50"
                       placeholder="How many days to complete?"
                     />
                   </div>
@@ -336,7 +424,8 @@ export default function BidPage() {
                       onChange={handleChange}
                       required
                       rows={6}
-                      className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all resize-y placeholder-slate-400"
+                      disabled={isClosed || deadlinePassed}
+                      className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all resize-y placeholder-slate-400 disabled:opacity-50"
                       placeholder="Describe why you're the best fit for this job, your approach, and relevant experience..."
                     />
                   </div>
@@ -352,7 +441,7 @@ export default function BidPage() {
                     </button>
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={submitting || isClosed || deadlinePassed}
                       className="flex-1 py-3 px-6 rounded-xl bg-[#14A887] text-white font-semibold hover:bg-[#108A6F] transition-colors disabled:opacity-50 flex justify-center items-center"
                     >
                       {submitting ? (

@@ -38,6 +38,7 @@ const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showAll, setShowAll] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   const categories = [
     "Web Development",
@@ -52,6 +53,17 @@ const Jobs = () => {
 
   useEffect(() => {
     const fetchJobs = async () => {
+      // Get user role from token
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const decoded = JSON.parse(atob(token.split(".")[1]));
+          setUserRole(decoded.role);
+        } catch (err) {
+          console.error("Invalid token:", err);
+        }
+      }
+
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/jobs`);
         if (!response.ok) {
@@ -76,8 +88,9 @@ const Jobs = () => {
       job.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory = !selectedCategory || job.category === selectedCategory;
+    const isOpen = job.status === "open" && !job.acceptedBid;
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && isOpen;
   });
 
   const displayedJobs = showAll ? filteredJobs : filteredJobs.slice(0, 6);
@@ -163,7 +176,10 @@ const Jobs = () => {
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-slate-900 hover:text-teal-600 transition-colors truncate mb-1">
+                        <h3 
+                          className="text-lg font-bold text-slate-900 hover:text-teal-600 transition-colors truncate mb-1 cursor-pointer"
+                          onClick={() => router.push(`/jobs/${job._id}`)}
+                        >
                           {job.title}
                         </h3>
                         <p className="text-sm text-slate-500">{job.client?.name || "Unknown Client"}</p>
@@ -202,15 +218,25 @@ const Jobs = () => {
                   <span className="text-sm font-medium text-slate-500">
                     {job.bids ? job.bids.length : 0} <span className="text-slate-400">proposal{job.bids?.length !== 1 ? 's' : ''}</span>
                   </span>
-                  <button
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white text-sm font-semibold hover:from-teal-600 hover:to-teal-700 transition-all duration-200 flex items-center gap-1.5"
-                    onClick={() => router.push(`/bid/${job._id}`)}
-                  >
-                    Apply Now
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all duration-200"
+                      onClick={() => router.push(`/jobs/${job._id}`)}
+                    >
+                      View Details
+                    </button>
+                    {userRole !== "client" && (
+                      <button
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white text-sm font-semibold hover:from-teal-600 hover:to-teal-700 transition-all duration-200 flex items-center gap-1.5 shadow-md shadow-teal-100"
+                        onClick={() => router.push(`/bid/${job._id}`)}
+                      >
+                        Apply Now
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

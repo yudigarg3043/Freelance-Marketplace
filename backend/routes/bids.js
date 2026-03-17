@@ -14,9 +14,17 @@ router.post('/', auth, async (req, res) => {
 
     const { jobId, amount, message } = req.body;
 
-    const job = await Job.findOne({ _id: jobId, status: { $nin: ['in-progress', 'completed'] } });
+    const job = await Job.findOne({ _id: jobId });
     if (!job) {
-      return res.status(404).json({ message: 'Job not found or not open for bidding.' });
+      return res.status(404).json({ message: 'Job not found.' });
+    }
+
+    if (job.status !== 'open' || job.acceptedBid) {
+      return res.status(400).json({ message: 'This job is no longer open for bidding as a freelancer has already been hired.' });
+    }
+
+    if (new Date(job.deadline) < new Date()) {
+      return res.status(400).json({ message: 'The deadline for this job has passed.' });
     }
 
     const existingBid = await Bid.findOne({
