@@ -9,10 +9,33 @@ Check out the deployed application here: [Freelance Marketplace](https://freelan
 
 ---
 
+## 📝 Project Description
+The Freelance Marketplace is a comprehensive platform that facilitates professional collaboration. It allows clients to post detailed job requirements and freelancers to bid on projects that align with their expertise. The system ensures a smooth flow from job creation to project completion with real-time tracking and role-based dashboards.
+
+## 🎯 Project Goals
+- **Connect Talent:** Bridge the gap between skilled freelancers and quality clients.
+- **Simplify Bidding:** Provide an intuitive interface for submitting and managing proposals.
+- **Enhance Transparency:** Offer real-time status updates for jobs and bids.
+- **Secure Collaboration:** Implement robust authentication and authorization to protect user data.
+
+## 📋 Specifications
+- **Real-time Dashboards:** Dedicated views for clients and freelancers to manage their activities.
+- **Dynamic Job Posting:** Customizable job listings with budget and deadline tracking.
+- **Bidding Engine:** Structured proposal system with amount and message fields.
+- **Cross-Platform Compatibility:** Fully responsive design using Tailwind CSS for a seamless experience on all devices.
+
+## 🎨 Design Overview
+- **Architecture:** Decoupled Frontend (Next.js) and Backend (Express) for better scalability.
+- **State Management:** Efficient client-side state handling with React hooks.
+- **Database Schema:** Optimized MongoDB collections for Users, Jobs, and Bids.
+- **UX Focus:** Clean, minimalist aesthetic with clear calls-to-action and intuitive navigation.
+
+---
+
 ## ✨ Features
 
 ### 👤 For Both Roles
-- **Secure Authentication:** Implementation of JWT-based login and registration with encrypted passwords (bcrypt).
+- **Secure Authentication:** JWT-based login and registration with encrypted passwords (bcrypt).
 - **Interactive Dashboard:** Personalized workspace for managing jobs and bids efficiently.
 
 ### 💼 For Clients
@@ -95,7 +118,9 @@ Freelance-Marketplace/
 │   ├── src/app/        # App Router pages and layouts
 │   ├── src/components/ # Shared UI components
 │   └── public/         # Static assets
-└── README.md           # Project documentation
+├── requirements.md     # Detailed functional and non-functional requirements
+├── design.md           # System architecture and design documentation
+└── README.md           # Project entry point
 ```
 
 ---
@@ -109,3 +134,4 @@ This project is licensed under the ISC License.
 Contributions are welcome! Please feel free to submit a Pull Request or open an issue for any suggestions or bug reports.
 
 ✨ *Built with passion by the Freelance Marketplace Team.*
+
