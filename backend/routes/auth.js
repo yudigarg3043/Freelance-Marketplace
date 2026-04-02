@@ -3,6 +3,37 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
+const passport = require('passport');
+
+// Step 1: Send user to Google
+router.get('/google', (req, res, next) => {
+  const role = req.query.role || 'freelancer';
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    session: false,
+    state: Buffer.from(JSON.stringify({ role })).toString('base64')
+  })(req, res, next);
+});
+
+// Step 2: Google sends user back here
+router.get('/google/callback',
+  passport.authenticate('google', { 
+    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`, 
+    session: false 
+  }),
+  (req, res) => {
+    // Generate JWT
+    const token = jwt.sign(
+      { id: req.user._id, role: req.user.role }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '2h' }
+    );
+
+    // Redirect back to Next.js frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/login?token=${token}`);
+  }
+);
 
 router.post('/register', async (req, res) => {
   try {

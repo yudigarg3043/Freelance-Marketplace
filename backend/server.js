@@ -10,6 +10,10 @@ const bids = require('./routes/bids');
 
 
 const app = express();
+const passport = require('passport');
+require('./config/passport'); // Load Passport configuration
+
+app.use(passport.initialize());
 
 app.use(cors({
   origin: [

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardSidebar from "../../components/Layout/DashboardSidebar";
+import EmptyState from "../../components/UI/EmptyState";
 
 const FreelancerDashboard = () => {
   const router = useRouter();
@@ -118,9 +119,12 @@ const FreelancerDashboard = () => {
             </h2>
 
             {activeProjects.length === 0 ? (
-              <p className="text-slate-500">
-                No active projects yet.
-              </p>
+              <EmptyState 
+                title="No active projects"
+                description="You haven't been hired for any projects yet. Start by browsing and bidding on open jobs."
+                actionLabel="Find Your Next Job"
+                onAction={() => router.push("/jobs")}
+              />
             ) : (
               <div className="space-y-4">
                 {displayedProjects.map((project) => (

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/Footer";
+import EmptyState from "../components/UI/EmptyState";
 
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
@@ -37,6 +38,9 @@ const Jobs = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [minBudget, setMinBudget] = useState("");
+  const [maxBudget, setMaxBudget] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [showAll, setShowAll] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
@@ -82,16 +86,33 @@ const Jobs = () => {
     fetchJobs();
   }, []);
 
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch =
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredJobs = jobs
+    .filter((job) => {
+      const matchesSearch =
+        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCategory = !selectedCategory || job.category === selectedCategory;
-    const isOpen = job.status === "open" && !job.acceptedBid;
+      const matchesCategory = !selectedCategory || job.category === selectedCategory;
+      
+      const matchesMinBudget = !minBudget || job.budget >= Number(minBudget);
+      const matchesMaxBudget = !maxBudget || job.budget <= Number(maxBudget);
+      
+      const isOpen = job.status === "open" && !job.acceptedBid;
 
-    return matchesSearch && matchesCategory && isOpen;
-  });
+      return matchesSearch && matchesCategory && matchesMinBudget && matchesMaxBudget && isOpen;
+    })
+    .sort((a, b) => {
+      if (sortBy === "newest") {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (sortBy === "budget-high") {
+        return b.budget - a.budget;
+      } else if (sortBy === "budget-low") {
+        return a.budget - b.budget;
+      } else if (sortBy === "deadline-soon") {
+        return new Date(a.deadline) - new Date(b.deadline);
+      }
+      return 0;
+    });
 
   const displayedJobs = showAll ? filteredJobs : filteredJobs.slice(0, 6);
 
@@ -117,37 +138,94 @@ const Jobs = () => {
               Browse freelance jobs from top clients around the world
             </p>
 
-            <div className="flex flex-col lg:flex-row gap-3">
-              <div className="relative flex-1">
-                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  placeholder="Search by title or keyword..."
-                  className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col lg:flex-row gap-3">
+                <div className="relative flex-1">
+                  <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    placeholder="Search by title or keyword..."
+                    className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="relative w-full lg:w-64">
+                  <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full h-12 pl-12 pr-10 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none cursor-pointer font-medium text-sm"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
-              <div className="relative w-full lg:w-64">
-                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full h-12 pl-12 pr-10 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none cursor-pointer font-medium text-sm"
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                  <span className="text-xs font-bold text-slate-400 uppercase">Budget</span>
+                  <input 
+                    type="number" 
+                    placeholder="Min" 
+                    className="w-20 lg:w-24 text-sm focus:outline-none"
+                    value={minBudget}
+                    onChange={(e) => setMinBudget(e.target.value)}
+                  />
+                  <span className="text-slate-300">|</span>
+                  <input 
+                    type="number" 
+                    placeholder="Max" 
+                    className="w-20 lg:w-24 text-sm focus:outline-none"
+                    value={maxBudget}
+                    onChange={(e) => setMaxBudget(e.target.value)}
+                  />
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="h-10 pl-4 pr-10 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none cursor-pointer"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="budget-high">Budget: High to Low</option>
+                    <option value="budget-low">Budget: Low to High</option>
+                    <option value="deadline-soon">Deadline: Soonest First</option>
+                  </select>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+
+                {(searchQuery || selectedCategory || minBudget || maxBudget || sortBy !== "newest") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("");
+                      setMinBudget("");
+                      setMaxBudget("");
+                      setSortBy("newest");
+                    }}
+                    className="text-sm font-semibold text-red-500 hover:text-red-600 transition flex items-center gap-1 ml-auto lg:ml-0"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Clear Filters
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -262,15 +340,18 @@ const Jobs = () => {
           )}
 
           {!loading && filteredJobs.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No jobs found</h3>
-              <p className="text-slate-500">Try adjusting your search</p>
-            </div>
+            <EmptyState 
+              title="No jobs found"
+              description="We couldn't find any jobs matching your current filters. Try adjusting your search query or categories."
+              actionLabel="Clear All Filters"
+              onAction={() => {
+                setSearchQuery("");
+                setSelectedCategory("");
+                setMinBudget("");
+                setMaxBudget("");
+                setSortBy("newest");
+              }}
+            />
           )}
         </div>
       </main>

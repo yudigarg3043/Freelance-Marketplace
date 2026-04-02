@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardSidebar from "../../components/Layout/DashboardSidebar";
+import EmptyState from "../../components/UI/EmptyState";
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -198,17 +199,12 @@ const ClientDashboard = () => {
           {/* Jobs List */}
           <div className="space-y-4">
             {allJobs.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-                <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">No jobs found</h3>
-                <p className="text-slate-500 text-sm mb-4">You haven't posted any jobs yet.</p>
-                <button
-                  onClick={() => router.push("/post-job")}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold"
-                >
-                  Post Your First Job
-                </button>
-              </div>
+              <EmptyState 
+                title="No projects found"
+                description="You haven't posted any jobs yet. Start by posting your first project to find top talent."
+                actionLabel="Post Your First Job"
+                onAction={() => router.push("/post-job")}
+              />
             ) : (
               displayedJobs.map((job) => {
                 const pendingCount = job.bids?.filter((b) => b.status === "pending").length || 0;

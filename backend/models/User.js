@@ -13,11 +13,11 @@ const userSchema = new mongoose.Schema({
         required: true
     },
 
-    title: { type: String },          // 👈 NEW
-    phone: { type: String, required: true },          // 👈 NEW
-    location: { type: String },       // 👈 NEW
-    bio: { type: String },     // 👈 NEW
-    skills: [{ type: String }],       // 👈 already exists but structured properly
+    title: { type: String },
+    phone: { type: String, required: false }, // Optional for OAuth users
+    location: { type: String },
+    bio: { type: String },
+    skills: [{ type: String }],
 
 }, { timestamps: true });
 
