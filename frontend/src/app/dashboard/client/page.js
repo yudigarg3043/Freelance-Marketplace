@@ -285,35 +285,41 @@ const ClientDashboard = () => {
                               return (
                                 <div
                                   key={bid._id}
-                                  className="bg-white p-4 rounded-xl border border-slate-200 hover:shadow-sm transition"
+                                  onClick={() => router.push(`/profile/${bid.freelancer?._id}`)}
+                                  className="bg-white p-4 rounded-xl border border-slate-200 hover:shadow-md hover:border-teal-500 transition-all cursor-pointer group"
                                 >
                                   <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm`}>
                                       {initials}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center justify-between mb-1">
                                         <div className="flex items-center gap-2">
-                                          <p className="font-semibold text-slate-900 text-sm">{name}</p>
-                                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize border ${badgeClass}`}>
+                                          <p className="font-bold text-slate-900 text-sm group-hover:text-teal-600 transition-colors">{name}</p>
+                                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badgeClass}`}>
                                             {bid.status}
                                           </span>
                                         </div>
-                                        <p className="font-bold text-slate-900">₹{bid.amount?.toLocaleString()}</p>
+                                        <div className="text-right">
+                                          <p className="font-bold text-slate-900">₹{bid.amount?.toLocaleString()}</p>
+                                          {bid.deliveryTime && (
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{bid.deliveryTime}d</p>
+                                          )}
+                                        </div>
                                       </div>
 
                                       {bid.freelancer?.skills && bid.freelancer.skills.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mb-2">
                                           {bid.freelancer.skills.slice(0, 4).map((skill, i) => (
-                                            <span key={i} className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs">{skill}</span>
+                                            <span key={i} className="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[10px] font-bold border border-slate-100 uppercase tracking-tighter">{skill}</span>
                                           ))}
                                         </div>
                                       )}
 
-                                      <p className="text-sm text-slate-600 line-clamp-2 mb-2">{bid.message}</p>
+                                      <p className="text-sm text-slate-600 line-clamp-2 mb-3 leading-relaxed">{bid.message}</p>
 
-                                      <div className="flex items-center justify-between">
-                                        <p className="text-xs text-slate-400">
+                                      <div className="flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                           {new Date(bid.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                                         </p>
 
@@ -322,22 +328,25 @@ const ClientDashboard = () => {
                                             <button
                                               onClick={() => handleBidAction(bid._id, "accept")}
                                               disabled={actionLoading === bid._id + "accept"}
-                                              className="px-4 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition disabled:opacity-50"
+                                              className="px-4 py-1.5 rounded-lg bg-teal-600 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-teal-700 transition shadow-lg shadow-teal-100 disabled:opacity-50"
                                             >
-                                              {actionLoading === bid._id + "accept" ? "..." : "✓ Accept"}
+                                              {actionLoading === bid._id + "accept" ? "..." : "Hire"}
                                             </button>
                                             <button
                                               onClick={() => handleBidAction(bid._id, "reject")}
                                               disabled={actionLoading === bid._id + "reject"}
-                                              className="px-4 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition disabled:opacity-50"
+                                              className="px-4 py-1.5 rounded-lg border border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-wider hover:bg-red-50 transition disabled:opacity-50"
                                             >
-                                              {actionLoading === bid._id + "reject" ? "..." : "✗ Reject"}
+                                              {actionLoading === bid._id + "reject" ? "..." : "Pass"}
                                             </button>
                                           </div>
                                         )}
 
                                         {bid.status === "accepted" && (
-                                          <span className="text-emerald-600 text-xs font-semibold">✓ Hired</span>
+                                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Hired</span>
+                                          </div>
                                         )}
                                       </div>
                                     </div>

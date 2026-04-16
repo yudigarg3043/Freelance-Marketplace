@@ -19,6 +19,20 @@ const userSchema = new mongoose.Schema({
     bio: { type: String },
     skills: [{ type: String }],
 
+    // Portfolio Management
+    portfolio: [{
+        title: { type: String, required: true },
+        description: { type: String },
+        link: { type: String },
+        imageUrl: { type: String }
+    }],
+
+    resume: { type: String, default: "" },
+
+    // Ratings & Reviews
+    rating: { type: Number, default: 0 },
+    numReviews: { type: Number, default: 0 },
+
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {

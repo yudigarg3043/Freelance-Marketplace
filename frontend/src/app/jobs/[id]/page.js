@@ -46,6 +46,11 @@ const JobDetail = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
 
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+    const [reviewSubmitted, setReviewSubmitted] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -174,6 +179,47 @@ const JobDetail = () => {
         }
     };
 
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        setActionLoading("submittingReview");
+        try {
+            const token = localStorage.getItem("token");
+            // Determine who to review:
+            // If current user is client, review the hired freelancer.
+            // If current user is freelancer, review the client.
+            const revieweeId = isOwner ? job.acceptedBid?.freelancer?._id : job.client?._id;
+
+            if (!revieweeId) throw new Error("Could not determine user to review");
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    jobId: job._id,
+                    revieweeId,
+                    rating: reviewForm.rating,
+                    comment: reviewForm.comment
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Failed to submit review");
+
+            setReviewSubmitted(true);
+            setHasReviewed(true);
+            setTimeout(() => {
+                setShowReviewModal(false);
+            }, 2000);
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const isOwner = job && job.client?._id === userId;
 
     if (loading) {
@@ -219,9 +265,17 @@ const JobDetail = () => {
                                     ✏️ Edit Job
                                 </button>
                             )}
-                            {!isEditing && userRole === "freelancer" && (
+                            {userRole === "freelancer" && job.status === "open" && !isEditing && (
                                 <button onClick={() => router.push(`/bid/${jobId}`)} className="flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold hover:opacity-90">
                                     Submit a Proposal
+                                </button>
+                            )}
+                            {job.status === "completed" && !hasReviewed && (
+                                <button 
+                                    onClick={() => setShowReviewModal(true)} 
+                                    className="flex items-center gap-2 px-6 py-2 rounded-xl bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-200"
+                                >
+                                    ⭐ Leave a Review
                                 </button>
                             )}
                         </div>
@@ -316,6 +370,32 @@ const JobDetail = () => {
                             )}
                         </div>
 
+                        {/* Attachments Section */}
+                        {job.attachments && job.attachments.length > 0 && (
+                            <div className="mb-6">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Attachments</p>
+                                <div className="flex flex-wrap gap-4">
+                                    {job.attachments.map((url, i) => (
+                                        <a 
+                                            key={i} 
+                                            href={url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-teal-500 transition-all group"
+                                        >
+                                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-teal-600 shadow-sm group-hover:bg-teal-50 transition-colors">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="text-xs font-bold text-slate-900 group-hover:text-teal-600 transition-colors">Attachment {i + 1}</p>
+                                                <p className="text-[10px] text-slate-400 uppercase tracking-wider">Click to View</p>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Edit Actions */}
                         {isEditing && (
                             <div className="flex gap-4 justify-end">
@@ -340,56 +420,88 @@ const JobDetail = () => {
                                     const badgeClass = STATUS_BADGE[bid.status] || STATUS_BADGE.pending;
 
                                     return (
-                                        <div key={bid._id} className="p-5 rounded-xl border border-slate-200 hover:shadow-sm transition-all">
+                                        <div 
+                                            key={bid._id} 
+                                            onClick={() => router.push(`/profile/${bid.freelancer?._id}`)}
+                                            className="p-5 rounded-xl border border-slate-200 hover:shadow-md hover:border-teal-500 transition-all cursor-pointer group"
+                                        >
                                             <div className="flex items-start gap-4">
-                                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}>
+                                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${color} flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm`}>
                                                     {initials}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between mb-1">
                                                         <div className="flex items-center gap-3">
-                                                            <p className="font-semibold text-slate-900">{name}</p>
-                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize border ${badgeClass}`}>
+                                                            <p className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{name}</p>
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badgeClass}`}>
                                                                 {bid.status}
                                                             </span>
                                                         </div>
-                                                        <p className="font-bold text-lg text-slate-900">₹{bid.amount?.toLocaleString()}</p>
+                                                        <div className="text-right">
+                                                            <p className="font-black text-xl text-slate-900 leading-none mb-1">₹{bid.amount?.toLocaleString()}</p>
+                                                            {bid.deliveryTime && (
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-end gap-1">
+                                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                    {bid.deliveryTime} Days Delivery
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
-
+ 
                                                     {bid.freelancer?.skills && bid.freelancer.skills.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1 mb-2">
-                                                            {bid.freelancer.skills.slice(0, 4).map((skill, i) => (
-                                                                <span key={i} className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">{skill}</span>
+                                                        <div className="flex flex-wrap gap-1.5 mb-3">
+                                                            {bid.freelancer.skills.slice(0, 5).map((skill, i) => (
+                                                                <span key={i} className="px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 text-[10px] font-bold border border-slate-100 uppercase tracking-tighter transition-colors group-hover:bg-white">{skill}</span>
                                                             ))}
                                                         </div>
                                                     )}
-
-                                                    <p className="text-sm text-slate-600 mb-3 line-clamp-2">{bid.message}</p>
-
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="text-xs text-slate-400">{formatDate(bid.createdAt)}</p>
-
+ 
+                                                    <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">{bid.message}</p>
+ 
+                                                    {bid.attachments && bid.attachments.length > 0 && (
+                                                        <div className="flex flex-wrap gap-2 mb-4" onClick={(e) => e.stopPropagation()}>
+                                                            {bid.attachments.map((url, i) => (
+                                                                <a 
+                                                                    key={i} 
+                                                                    href={url} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer" 
+                                                                    className="px-3 py-1.5 rounded-lg border border-slate-100 bg-slate-50 text-[10px] font-bold text-slate-500 hover:bg-white hover:border-teal-500 transition-all flex items-center gap-2"
+                                                                >
+                                                                    <svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                                    PropDocument_{i + 1}
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+ 
+                                                    <div className="flex items-center justify-between pt-4 border-t border-slate-50" onClick={(e) => e.stopPropagation()}>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatDate(bid.createdAt)}</p>
+ 
                                                         {bid.status === "pending" && job.status === "open" && (
                                                             <div className="flex gap-2">
                                                                 <button
                                                                     onClick={() => handleBidAction(bid._id, "accept")}
                                                                     disabled={actionLoading === bid._id + "accept"}
-                                                                    className="px-4 py-1.5 rounded-lg bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                                                                    className="px-5 py-2 rounded-xl bg-[#14A887] text-white text-xs font-black shadow-lg shadow-emerald-200 hover:bg-[#108A6F] transition-all disabled:opacity-50"
                                                                 >
-                                                                    {actionLoading === bid._id + "accept" ? "..." : "✓ Accept"}
+                                                                    {actionLoading === bid._id + "accept" ? "..." : "HIRE FREELANCER"}
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleBidAction(bid._id, "reject")}
                                                                     disabled={actionLoading === bid._id + "reject"}
-                                                                    className="px-4 py-1.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+                                                                    className="px-5 py-2 rounded-xl border-2 border-red-50 text-red-600 text-xs font-black hover:bg-red-50 transition-all disabled:opacity-50"
                                                                 >
-                                                                    {actionLoading === bid._id + "reject" ? "..." : "✗ Reject"}
+                                                                    {actionLoading === bid._id + "reject" ? "..." : "PASS"}
                                                                 </button>
                                                             </div>
                                                         )}
-
+ 
                                                         {bid.status === "accepted" && (
-                                                            <span className="text-emerald-600 text-sm font-medium">✓ Hired</span>
+                                                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                                                <span className="text-[10px] font-black uppercase tracking-wider">Hired for project</span>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -410,6 +522,77 @@ const JobDetail = () => {
                         </div>
                     )}
 
+                    {/* Review Modal */}
+                    {showReviewModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
+                            <div className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full p-8 md:p-10 transform scale-100 animate-in zoom-in-95 duration-200">
+                                {reviewSubmitted ? (
+                                    <div className="text-center py-10">
+                                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Review Submitted!</h2>
+                                        <p className="text-slate-500">Your feedback has been published successfully.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-between mb-8">
+                                            <h2 className="text-2xl font-black text-slate-900">Leave a Review</h2>
+                                            <button onClick={() => setShowReviewModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+
+                                        <form onSubmit={handleReviewSubmit} className="space-y-8">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 mb-4">How was your experience?</label>
+                                                <div className="flex gap-3 justify-center">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <button
+                                                            key={star}
+                                                            type="button"
+                                                            onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                                            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                                                                reviewForm.rating >= star 
+                                                                ? "bg-amber-400 text-white shadow-lg shadow-amber-400/20" 
+                                                                : "bg-slate-100 text-slate-400"
+                                                            }`}
+                                                        >
+                                                            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 mb-2">Share your thoughts</label>
+                                                <textarea
+                                                    required
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 text-slate-900 focus:bg-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all font-medium resize-none"
+                                                    rows={4}
+                                                    placeholder="Describe the quality of work, communication, and professionalism..."
+                                                    value={reviewForm.comment}
+                                                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={actionLoading === "submittingReview"}
+                                                className="w-full py-5 rounded-2xl bg-slate-900 text-white font-bold text-lg hover:bg-slate-800 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+                                            >
+                                                {actionLoading === "submittingReview" ? (
+                                                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                ) : (
+                                                    "Publish Review"
+                                                )}
+                                            </button>
+                                        </form>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
             <Footer />

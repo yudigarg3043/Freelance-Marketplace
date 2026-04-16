@@ -47,6 +47,7 @@ const jobSchema = new mongoose.Schema(
       ref: "Bid",
       default: null,
     },
+    attachments: [String],
   },
   { timestamps: true }
 );

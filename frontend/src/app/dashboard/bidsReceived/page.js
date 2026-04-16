@@ -183,7 +183,12 @@ export default function BidsReceived() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-slate-900">{name}</p>
+                            <p 
+                                className="font-semibold text-slate-900 hover:text-teal-600 cursor-pointer transition-colors"
+                                onClick={() => router.push(`/profile/${bid.freelancer?._id}`)}
+                            >
+                                {name}
+                            </p>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize border ${badgeClass}`}>
                               {bid.status}
                             </span>

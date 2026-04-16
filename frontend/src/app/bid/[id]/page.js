@@ -110,6 +110,8 @@ export default function BidPage() {
     });
   };
 
+  const [files, setFiles] = useState([]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.amount || !formData.message) return;
@@ -117,18 +119,23 @@ export default function BidPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
+      const dataToSend = new FormData();
+      
+      dataToSend.append("jobId", id);
+      dataToSend.append("amount", Number(formData.amount));
+      dataToSend.append("deliveryTime", Number(formData.deliveryTime));
+      dataToSend.append("message", formData.message);
+
+      files.forEach(file => {
+        dataToSend.append("attachments", file);
+      });
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/bids`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          jobId: id,
-          amount: Number(formData.amount),
-          deliveryTime: Number(formData.deliveryTime),
-          message: formData.message
-        })
+        body: dataToSend
       });
 
       const data = await res.json();
@@ -430,7 +437,39 @@ export default function BidPage() {
                     />
                   </div>
 
+                  {/* File Upload Section */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Attachments (PDF, Images, etc.)
+                    </label>
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50/50 hover:bg-white hover:border-teal-500 transition-all">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <p className="text-xs text-slate-500"><span className="font-bold">Click to upload files</span></p>
+                        </div>
+                        <input 
+                          type="file" 
+                          multiple 
+                          className="hidden" 
+                          disabled={isClosed || deadlinePassed}
+                          onChange={(e) => setFiles(Array.from(e.target.files))}
+                        />
+                      </label>
+                    </div>
+                    {files.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {files.map((file, i) => (
+                          <span key={i} className="px-3 py-1 bg-teal-50 text-teal-700 text-[10px] font-bold rounded-lg border border-teal-100 flex items-center gap-2">
+                            {file.name}
+                            <button type="button" onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Actions */}
+
                   <div className="flex gap-4 pt-4 border-t border-slate-100">
                     <button
                       type="button"

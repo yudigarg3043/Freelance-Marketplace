@@ -81,6 +81,8 @@ const PostJob = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const [files, setFiles] = useState([]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -94,19 +96,27 @@ const PostJob = () => {
 
     try {
       const token = localStorage.getItem("token");
+      const dataToSend = new FormData();
+      
+      // Append text fields
+      Object.keys(formData).forEach(key => {
+        dataToSend.append(key, formData[key]);
+      });
+      dataToSend.set("budget", Number(formData.budget));
+
+      // Append files
+      files.forEach(file => {
+        dataToSend.append("attachments", file);
+      });
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/jobs`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            ...formData,
-            budget: Number(formData.budget),
-          }),
+          body: dataToSend,
         }
       );
 
@@ -238,8 +248,40 @@ const PostJob = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* File Upload Section */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 ml-1">Project Requirements / Attachments (Optional, Max 5)</label>
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-200 border-dashed rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-white hover:border-teal-500 transition-all">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <svg className="w-8 h-8 mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                          <p className="mb-2 text-sm text-slate-500"><span className="font-bold">Click to upload</span> or drag and drop</p>
+                          <p className="text-xs text-slate-400">PDF, JPG, PNG, DOC, ZIP (Max 10MB per file)</p>
+                        </div>
+                        <input 
+                          type="file" 
+                          multiple 
+                          className="hidden" 
+                          onChange={(e) => setFiles(Array.from(e.target.files))}
+                        />
+                      </label>
+                    </div>
+                    {files.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {files.map((file, i) => (
+                          <span key={i} className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-bold rounded-lg border border-teal-100 flex items-center gap-2">
+                            {file.name}
+                            <button type="button" onClick={() => setFiles(prev => prev.filter((_, idx) => idx !== i))}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
+
 
               {/* Step 2: Financials & Timeline */}
               <div className="bg-white rounded-[2rem] p-8 md:p-10 border border-slate-200 shadow-xl shadow-slate-200/50">

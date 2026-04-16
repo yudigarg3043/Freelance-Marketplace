@@ -97,17 +97,37 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+const upload = require('../middleware/upload');
+
 // Update Profile
-router.put('/me', auth, async (req, res) => {
+router.put('/me', auth, upload.single('resume'), async (req, res) => {
   try {
+    let { name, title, phone, location, bio, skills, portfolio } = req.body;
+
+    // Handle FormData parsing for arrays/objects
+    if (typeof skills === 'string') {
+      try { skills = JSON.parse(skills); } catch (e) { 
+        skills = skills.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+    if (typeof portfolio === 'string') {
+      try { portfolio = JSON.parse(portfolio); } catch (e) { portfolio = []; }
+    }
+
     const updates = {
-      name: req.body.name,
-      title: req.body.title,
-      phone: req.body.phone,
-      location: req.body.location,
-      bio: req.body.bio,
-      skills: req.body.skills,
+      name,
+      title,
+      phone,
+      location,
+      bio,
+      skills,
+      portfolio,
     };
+
+    // If a resume was uploaded, update the user's resume URL
+    if (req.file) {
+      updates.resume = req.file.path;
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
@@ -123,4 +143,18 @@ router.put('/me', auth, async (req, res) => {
 });
 
 
-module.exports = router;
+// Get public profile of any user by ID
+router.get('/user/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password -email -phone'); // Hide private info
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ user });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+module.exports = router;

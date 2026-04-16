@@ -29,6 +29,7 @@ const ProfilePage = () => {
             location: data.user.location || "",
             bio: data.user.bio || "",
             skills: data.user.skills?.join(", ") || "",
+            portfolio: data.user.portfolio || [],
           });
         }
       } catch (err) {
@@ -40,32 +41,42 @@ const ProfilePage = () => {
     fetchUser();
   }, []);
 
+  const [resumeFile, setResumeFile] = useState(null);
+
   const handleSave = async () => {
     try {
       setSaving(true);
       setError("");
       const token = localStorage.getItem("token");
+
+      const dataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (key === 'skills' || key === 'portfolio') {
+          dataToSend.append(key, JSON.stringify(formData[key]));
+        } else {
+          dataToSend.append(key, formData[key]);
+        }
+      });
+
+      if (resumeFile) {
+        dataToSend.append('resume', resumeFile);
+      }
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
         {
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            ...formData,
-            skills: formData.skills
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean),
-          }),
+          body: dataToSend,
         }
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.msg || "Update failed");
       setUser(data.user);
       setIsEditing(false);
+      setResumeFile(null); // Reset file selection
     } catch (err) {
       setError(err.message);
     } finally {
@@ -234,6 +245,25 @@ const ProfilePage = () => {
                       }
                     />
                   </div>
+                  {user.role === 'freelancer' && (
+                    <div className="pt-2 border-t border-slate-100 mt-2">
+                       <label className="block text-xs font-bold text-slate-700 mb-2">Resume (PDF, Max 1MB)</label>
+                       <div className="flex flex-col gap-2">
+                          <input 
+                            type="file" 
+                            accept=".pdf"
+                            onChange={(e) => setResumeFile(e.target.files[0])}
+                            className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+                          />
+                          {user.resume && (
+                            <p className="text-[10px] text-teal-600 font-medium flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                              Current Resume Uploaded
+                            </p>
+                          )}
+                       </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3 text-sm">
@@ -249,6 +279,14 @@ const ProfilePage = () => {
                     <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <span className="text-slate-600">{user?.location || "Not provided"}</span>
                   </div>
+                  {user.resume && (
+                    <div className="pt-2 border-t border-slate-100 mt-2 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      <a href={user.resume} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-teal-600 hover:underline">
+                        View Resume (PDF)
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -285,6 +323,104 @@ const ProfilePage = () => {
               )}
             </div>
 
+            {/* Portfolio Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-4 mb-20">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-900">Portfolio</h3>
+                {isEditing && (
+                  <button
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        portfolio: [
+                          ...formData.portfolio,
+                          { title: "", description: "", link: "", imageUrl: "" },
+                        ],
+                      });
+                    }}
+                    className="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1"
+                  >
+                    <span>+ Add Project</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                {(isEditing ? formData.portfolio : user?.portfolio)?.length > 0 ? (
+                  (isEditing ? formData.portfolio : user.portfolio).map((item, index) => (
+                    <div
+                      key={index}
+                      className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 group relative"
+                    >
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <input
+                              className="w-full bg-transparent font-bold text-slate-900 focus:outline-none border-b border-transparent focus:border-teal-500"
+                              placeholder="Project Title"
+                              value={item.title}
+                              onChange={(e) => {
+                                const newPortfolio = [...formData.portfolio];
+                                newPortfolio[index].title = e.target.value;
+                                setFormData({ ...formData, portfolio: newPortfolio });
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                const newPortfolio = formData.portfolio.filter((_, i) => i !== index);
+                                setFormData({ ...formData, portfolio: newPortfolio });
+                              }}
+                              className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                          </div>
+                          <textarea
+                            className="w-full bg-transparent text-sm text-slate-600 focus:outline-none border-b border-transparent focus:border-teal-500 resize-none"
+                            placeholder="Brief description..."
+                            rows="2"
+                            value={item.description}
+                            onChange={(e) => {
+                              const newPortfolio = [...formData.portfolio];
+                              newPortfolio[index].description = e.target.value;
+                              setFormData({ ...formData, portfolio: newPortfolio });
+                            }}
+                          />
+                          <input
+                            className="w-full bg-transparent text-xs text-teal-600 focus:outline-none border-b border-transparent focus:border-teal-500"
+                            placeholder="Project Link (optional)"
+                            value={item.link}
+                            onChange={(e) => {
+                              const newPortfolio = [...formData.portfolio];
+                              newPortfolio[index].link = e.target.value;
+                              setFormData({ ...formData, portfolio: newPortfolio });
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div>
+                          <h4 className="font-bold text-slate-900">{item.title}</h4>
+                          <p className="text-sm text-slate-600 mb-2">{item.description}</p>
+                          {item.link && (
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-semibold text-teal-600 hover:underline"
+                            >
+                              View Project →
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400 italic">No portfolio items added yet.</p>
+                )}
+              </div>
+            </div>
+
             {/* Mobile Save Button (sticky) */}
             {isEditing && (
               <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 flex gap-3 sm:hidden z-40">
@@ -298,6 +434,7 @@ const ProfilePage = () => {
                       location: user.location || "",
                       bio: user.bio || "",
                       skills: user.skills?.join(", ") || "",
+                      portfolio: user.portfolio || [],
                     });
                   }}
                   className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold"

@@ -2,17 +2,18 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const Bid = require('../models/Bid');
 const Job = require('../models/Job');
+const upload = require('../middleware/upload');
 
 
 const router = express.Router();
 
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, upload.array('attachments', 3)], async (req, res) => {
   try {
     if (req.user.role !== 'freelancer') {
       return res.status(403).json({ message: 'Only freelancers can place bids.' });
     }
 
-    const { jobId, amount, message } = req.body;
+    const { jobId, amount, message, deliveryTime } = req.body;
 
     const job = await Job.findOne({ _id: jobId });
     if (!job) {
@@ -27,15 +28,20 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'The deadline for this job has passed.' });
     }
 
+    // Extract Cloudinary URLs from uploaded files
+    const attachments = req.files ? req.files.map(file => file.path) : [];
+
     const existingBid = await Bid.findOne({
       job: jobId,
       freelancer: req.user._id
     });
 
     if (existingBid) {
-      // Update existing bid instead of creating a new one
       existingBid.amount = amount;
       existingBid.message = message;
+      if (attachments.length > 0) existingBid.attachments = attachments;
+      if (deliveryTime) existingBid.deliveryTime = deliveryTime;
+      
       await existingBid.save();
       await existingBid.populate('freelancer', 'name');
 
@@ -47,8 +53,11 @@ router.post('/', auth, async (req, res) => {
       job: jobId,
       freelancer: req.user._id,
       amount,
-      message
+      message,
+      attachments,
+      deliveryTime
     });
+
 
     await bid.save();
 

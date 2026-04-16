@@ -24,7 +24,12 @@ const bidSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'accepted', 'rejected'],
       default: 'pending'
-    }
+    },
+    attachments: [String],
+    deliveryTime: {
+      type: Number,
+      required: true
+    },
   },
   { timestamps: true }
 );

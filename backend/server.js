@@ -7,6 +7,7 @@ const jobs = require('./routes/jobs');
 const dashboard = require('./routes/dashboard');
 
 const bids = require('./routes/bids');
+const reviews = require('./routes/reviews');
 
 
 const app = express();
@@ -48,6 +49,7 @@ app.use('/api/jobs', jobs);
 app.use('/api/dashboard', dashboard);
 
 app.use('/api/bids', bids);
+app.use('/api/reviews', reviews);
 
 
 const PORT = process.env.Port || 5000;

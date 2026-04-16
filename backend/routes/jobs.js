@@ -1,9 +1,10 @@
 const express = require('express');
 const Job = require('../models/Job');
 const auth = require('../middleware/auth');
+const upload = require('../middleware/upload');
 const router = express.Router();
 
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, upload.array('attachments', 5)], async (req, res) => {
     try {
         const { title, description, budget, deadline, completionDeadline, category } = req.body;
 
@@ -15,6 +16,9 @@ router.post('/', auth, async (req, res) => {
             return res.status(400).json({ message: 'Bidding deadline must be before project completion deadline.' });
         }
 
+        // Extract Cloudinary URLs from uploaded files
+        const attachments = req.files ? req.files.map(file => file.path) : [];
+
         const job = new Job({
             title,
             description,
@@ -22,8 +26,10 @@ router.post('/', auth, async (req, res) => {
             deadline,
             completionDeadline,
             category,
-            client: req.user._id
+            client: req.user._id,
+            attachments
         });
+
 
         await job.save();
         res.status(201).json(job);
@@ -49,7 +55,7 @@ router.get('/:id', async (req, res) => {
             .populate('client', 'name email')
             .populate({
                 path: 'bids',
-                populate: { path: 'freelancer', select: 'name' },
+                populate: { path: 'freelancer', select: 'name skills' },
                 options: { sort: { createdAt: -1 } }
             });
 
