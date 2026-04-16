@@ -12,29 +12,39 @@ const reviews = require('./routes/reviews');
 
 const app = express();
 
-// 1. CORS - MUST BE FIRST
-app.use(cors({
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://freelance-marketplace-frontend-omega.vercel.app',
-      'https://freelance-marketplace-gray.vercel.app',
-      'http://localhost:3000',
-      'http://localhost:4080'
-    ];
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-}));
+// 1. GLOBAL FAIL-SAFE CORS - MUST BE FIRST
+// This middleware ensures that even if something crashes later, the browser gets CORS headers
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://freelance-marketplace-frontend-omega.vercel.app',
+    'https://freelance-marketplace-gray.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:4080'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // Allow server-to-server requests
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
 
-// Handle preflight requests for all routes
-app.options('*', cors());
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// Standard CORS as a backup and for better integration with other middlewares
+app.use(cors({
+  origin: true, // Controlled by the manual header above, but true mirrors the origin correctly
+  credentials: true
+}));
 
 // 2. Middlewares
 app.use(express.json());
@@ -57,6 +67,7 @@ app.get('/api/health', (req, res) => {
     envCheck: {
       MONGO_URI: process.env.MONGO_URI ? 'SET' : 'NOT SET',
       JWT_SECRET: process.env.JWT_SECRET ? 'SET' : 'NOT SET',
+      FRONTEND_URL: process.env.FRONTEND_URL || 'NOT SET',
       GOOGLE_CONFIG: (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) ? 'SET' : 'NOT SET'
     }
   });
@@ -69,12 +80,20 @@ app.use('/api/dashboard', dashboard);
 app.use('/api/bids', bids);
 app.use('/api/reviews', reviews);
 
-// 6. Global Error Handler
+// 6. Global Error Handler - Now includes CORS headers
 app.use((err, req, res, next) => {
   console.error('SERVER ERROR:', err);
+  
+  // Re-ensure CORS headers are present even in error responses
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
   res.status(500).json({ 
     message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Detailed error in server logs'
   });
 });
 

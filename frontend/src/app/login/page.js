@@ -66,10 +66,10 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4080";
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4080";
     window.open(`${backendUrl}/api/auth/google`, "_self");
   };
-  
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans">
       {/* Left Side: Login Form */}
@@ -78,7 +78,7 @@ const Login = () => {
           <div className="flex justify-center lg:justify-start">
             <Header />
           </div>
-          
+
           <div className="space-y-3 text-center lg:text-left">
             <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
               Welcome back
@@ -200,16 +200,16 @@ const Login = () => {
         {/* Abstract Background Shapes */}
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-teal-500/10 rounded-full blur-3xl -mr-96 -mt-96 animate-pulse"></div>
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl -ml-72 -mb-72"></div>
-        
+
         {/* Glassmorphism Content Card */}
         <div className="relative z-10 w-full max-w-xl p-12 text-center space-y-8">
           <div className="inline-block p-4 rounded-3xl bg-teal-500/10 backdrop-blur-xl border border-teal-500/20 mb-4 animate-bounce-slow">
-             <svg className="w-12 h-12 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            <svg className="w-12 h-12 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
           </div>
-          
+
           <div className="space-y-4">
             <h2 className="text-5xl font-black text-white leading-tight">
-              Unlock Your <br /> 
+              Unlock Your <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">Potential</span>
             </h2>
             <p className="text-slate-400 text-xl leading-relaxed max-w-md mx-auto">

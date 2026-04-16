@@ -3,8 +3,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User'); // Your Mongoose User model
 
 passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    clientID: process.env.GOOGLE_CLIENT_ID || 'dummy',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy',
     callbackURL: "/api/auth/google/callback",
     passReqToCallback: true
 },
