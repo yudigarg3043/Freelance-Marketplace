@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
     location: { type: String },
     bio: { type: String },
     skills: [{ type: String }],
+    avatar: { type: String },
+    googleId: { type: String },
 
     // Portfolio Management
     portfolio: [{
