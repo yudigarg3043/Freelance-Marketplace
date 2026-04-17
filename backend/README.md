@@ -1,55 +1,60 @@
 # ⚙️ Freelance Marketplace - Backend
 
-This is the backend server for the Freelance Marketplace project, built with [Node.js](https://nodejs.org/) and [Express.js](https://expressjs.com/).
+This is the backend server for the Freelance Marketplace project, built with [Node.js](https://nodejs.org/) and [Express.js](https://expressjs.com/). It handles authentication, job management, and secure file processing.
 
 ---
 
 ## 🚀 Getting Started
 
-First, install the dependencies:
-
+### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-Create a `.env` file in this directory and add your MongoDB connection string and JWT secret:
+### 2. Environment Configuration
+Create a `.env` file in this directory and add the following keys:
 
 ```env
-PORT=5000
+PORT=4080
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
+FRONTEND_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+CLOUDINARY_URL=your_cloudinary_url
 ```
 
-Then, run the development server:
-
+### 3. Run the Server
 ```bash
-npm run dev
+npm start
 ```
-
-The server will be running on [http://localhost:5000](http://localhost:5000).
+The server will be running on [http://localhost:4080](http://localhost:4080).
 
 ---
 
 ## 🛠️ Features
 
-- **Auth System:** JWT-based user authentication (Signup/Login).
-- **REST API:** Endpoints for managing jobs, bids, and user dashboards.
-- **Database:** MongoDB with Mongoose for schema-based data modeling.
-- **Security:** Password hashing with Bcryptjs.
+- **Dual Auth System:** Supports both standard JWT-based email/password and **Google OAuth 2.0** (via Passport.js).
+- **Secure File Processing:** Integrated with **Cloudinary** for hosting freelancer resumes and project attachments.
+- **Fail-Safe CORS:** Custom middleware ensures API stability across different deployment origins.
+- **RESTful API:** Modular endpoints for managing jobs, bids, reviews, and role-specific dashboards.
+- **Data Integrity:** MongoDB with Mongoose for robust, schema-based modeling.
 
 ---
 
 ## 📂 Folder Structure
 
-- `models/`: Mongoose schemas for User, Job, and Bid.
-- `routes/`: Express routers for handling various API resources.
-- `middleware/`: Custom middleware for auth verification.
-- `server.js`: Server initialization and configuration.
+- `config/`: Configuration for Passport.js strategies and database connection.
+- `models/`: Mongoose schemas for User, Job, Bid, and Review.
+- `routes/`: Modular Express routers handling various API resources.
+- `middleware/`: Custom middleware for auth verification, file uploads (Multer), and CORS enforcement.
+- `server.js`: Central entry point and middleware orchestration.
 
 ---
 
 ## 🔗 Project Link
 
-For the full project details and frontend setup, please refer to the [Main README.md](../README.md).
+For the full project details, frontend setup, and comprehensive documentation, please refer to the **[Main README.md](../README.md)**.
 
 ✨ *Building the backbone of a better freelance ecosystem.*
+

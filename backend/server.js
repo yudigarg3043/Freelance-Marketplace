@@ -12,6 +12,9 @@ const reviews = require('./routes/reviews');
 
 const app = express();
 
+// Enable trust proxy for Vercel/proxies to handle https/host correctly
+app.set('trust proxy', 1);
+
 // 1. GLOBAL FAIL-SAFE CORS - MUST BE FIRST
 // This middleware ensures that even if something crashes later, the browser gets CORS headers
 app.use((req, res, next) => {
